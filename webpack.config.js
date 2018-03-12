@@ -9,7 +9,8 @@ module.exports = {
     devtool: 'source-map',
     entry: {
         'sky-triangle': ['require.ts', 'sky-triangle/example.ts'],
-        'test-renderer': ['require.ts', 'test-renderer/example.ts']
+        'test-renderer': ['require.ts', 'test-renderer/example.ts'],
+        'cornell-box': ['require.ts', 'cornell-box/example.ts']
     },
     externals: {
         'webgl-operate': 'gloperate'
