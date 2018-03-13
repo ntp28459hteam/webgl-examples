@@ -2,14 +2,15 @@
 
 import * as gloperate from 'webgl-operate';
 
-import { TestRenderer } from './testrenderer';
+import { CornellRenderer } from './cornellrenderer';
 
 
 function onload() {
     const canvas = new gloperate.Canvas('example-canvas');
     const context = canvas.context;
-    const renderer = new TestRenderer();
+    const renderer = new CornellRenderer();
     canvas.renderer = renderer;
+    canvas.controller.multiFrameNumber = 64;
 
     // export variables
     (window as any)['canvas'] = canvas;
