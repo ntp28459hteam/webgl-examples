@@ -10,6 +10,7 @@ function onload() {
     const context = canvas.context;
     const renderer = new CornellRenderer();
     canvas.renderer = renderer;
+    canvas.framePrecision = `float`;
     canvas.controller.multiFrameNumber = 64;
 
     // export variables

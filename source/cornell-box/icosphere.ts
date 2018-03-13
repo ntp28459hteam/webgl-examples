@@ -70,7 +70,7 @@ export function pointsOnSphere(minN: number): Array<vec3> {
 
     // normalize
     for (let i = 0; i < 12; ++i) {
-        icopoints[i] = vec3.normalize(vec3.create(), icopoints[i]);
+        vec3.normalize(icopoints[i], icopoints[i]);
     }
 
     icofaces.push(vec3.fromValues(0, 11, 5));
@@ -131,7 +131,7 @@ export function pointsOnSphere(minN: number): Array<vec3> {
     const size = icopoints.length;
     for (let i = 0; i < size; ++i) {
         if (icopoints[i][2] > 0.0) {
-            points.push(icopoints[i]);
+            points.push(vec3.clone(icopoints[i]));
         }
     }
 

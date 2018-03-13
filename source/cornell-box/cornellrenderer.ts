@@ -203,15 +203,11 @@ export class CornellRenderer extends gloperate.AbstractRenderer {
         // CREATE HEMISPHERE PATH SAMPLES
         const points = pointsOnSphere(16384);
         const samplerSize = Math.floor(Math.sqrt(points.length));
-        while (points.length > samplerSize * samplerSize) {
-            points.pop();
-        }
-        const spherePoints = new Float32Array(points.length * 3);
-        let i = 0;
-        for (const point of points) {
-            spherePoints[i++] = point[0];
-            spherePoints[i++] = point[1];
-            spherePoints[i++] = point[2];
+        const spherePoints = new Float32Array(samplerSize * samplerSize * 3);
+        for (let i = 0; i < samplerSize * samplerSize; ++i) {
+            spherePoints[3 * i + 0] = points[i][0];
+            spherePoints[3 * i + 1] = points[i][1];
+            spherePoints[3 * i + 2] = points[i][2];
         }
         this._hsphereImage = new gloperate.Texture2(this.context, 'hsphereImage');
         this._hsphereImage.initialize(samplerSize, samplerSize, gl.RGB32F, gl.RGB, gl.FLOAT);

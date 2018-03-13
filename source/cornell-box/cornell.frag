@@ -158,10 +158,9 @@ float shadow(
 
 	int i = fragID % (lightssize[0] * lightssize[1]);
 
-    int y = int(float(i) / float(lightssize[0]));
-    int x = int(i - y * lightssize[0]);
+    int x = i % lightssize[0];
+    int y = i / lightssize[0];
 
-	// select random point on hemisphere
 	vec3 ray = normalize(texelFetch(u_lights, ivec2(x, y), 0).rgb - origin);
 
 	float a = dot(ray, n);
@@ -194,8 +193,8 @@ vec3 normal(
 	// hemisphere samplepoints is oriented up
 
 	tangentspace[0] = normalize(e0);
-	tangentspace[1] = normalize(cross(e0, e1));
-	tangentspace[2] = cross(tangentspace[1], tangentspace[0]);
+	tangentspace[1] = normalize(cross(tangentspace[0], e1));
+	tangentspace[2] = normalize(cross(tangentspace[1], tangentspace[0]));
 
 	return tangentspace[1];
 }
@@ -207,8 +206,8 @@ vec3 randomPointOnHemisphere(
 {
 	int i = fragID % (hspheresize[0] * hspheresize[1]);
 
-    int y = int(float(i) / float(hspheresize[0]));
-    int x = int(i - y * hspheresize[0]);
+    int x = i % hspheresize[0];
+    int y = i / hspheresize[0];
 
 	return texelFetch(u_hsphere, ivec2(x, y), 0).rgb;
 }
@@ -232,7 +231,7 @@ void main()
 
     // fragment index for random variation
 	vec2 xy = v_uv * vec2(u_viewport[0], u_viewport[1]);
-	int fragID = int(int(xy.y) * int(u_viewport[0]) + int(xy.x) + u_frame + u_rand);
+	int fragID = int(xy.y * u_viewport[0] + xy.x + float(u_frame) + float(u_rand));
 
 
 	// triangle data
@@ -246,7 +245,7 @@ void main()
 
 	float t = INFINITY;
 
-	for(int bounce = 0; bounce < 3; ++bounce)
+	for(int bounce = 0; bounce < 2; ++bounce)
 	{
   		t = intersection(origin, ray, triangle, colorIndex); // compute t from objects
 
