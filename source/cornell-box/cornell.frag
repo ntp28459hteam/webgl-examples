@@ -8,7 +8,7 @@ precision lowp usampler2D;
 #if __VERSION__ == 100
     #define fragColor gl_FragColor
     #extension GL_OES_standard_derivatives : enable
-#else 
+#else
     layout(location = 0) out vec4 fragColor;
 #endif
 
@@ -182,6 +182,23 @@ float shadow(
 	return a;
 }
 
+mat3 computeTbn(in vec3 N, in vec3 position, in vec2 uv)
+{
+    vec3 E1 = dFdx(position);
+    vec3 E2 = dFdy(position);
+    vec2 st1 = dFdx(uv);
+    vec2 st2 = dFdy(uv);
+
+    vec3 T = (-st2.t * E1 + st1.t * E2) / (st1.t * st2.s - st1.s * st2.t);
+    vec3 B = ( st2.s * E1 - st1.s * E2) / (st1.t * st2.s - st1.s * st2.t);
+
+    vec3 Tn = normalize(T - dot(T, N) * N);
+    vec3 Bn = normalize(B - dot(B, N) * N - dot(B, Tn) * Tn);
+
+    return mat3(Tn, Bn, N);
+}
+
+
 // retrieve normal of triangle, and provide tangentspace
 vec3 normal(
 	const in vec3 triangle[3]
@@ -190,13 +207,11 @@ vec3 normal(
 	vec3 e0 = triangle[1] - triangle[0];
 	vec3 e1 = triangle[2] - triangle[0];
 
-	// hemisphere samplepoints is oriented up
+    vec3 n = normalize(cross(e0, e1));
 
-	tangentspace[0] = normalize(e0);
-	tangentspace[1] = normalize(cross(tangentspace[0], e1));
-	tangentspace[2] = normalize(cross(tangentspace[1], tangentspace[0]));
+    tangentspace = computeTbn(n, triangle[0], v_uv);
 
-	return tangentspace[1];
+    return n;
 }
 
 // select random point on hemisphere
@@ -245,7 +260,7 @@ void main()
 
 	float t = INFINITY;
 
-	for(int bounce = 0; bounce < 2; ++bounce)
+	for(int bounce = 0; bounce < 4; ++bounce)
 	{
   		t = intersection(origin, ray, triangle, colorIndex); // compute t from objects
 
@@ -258,7 +273,7 @@ void main()
 
   		vec3 color = texelFetch(u_colors, ivec2(colorIndex, 0), 0).xyz; // compute material color from hit
   		float lighting = shadow(fragID + bounce, lightssize, origin, n) * 0.4; // compute direct lighting from hit
-        
+
   		// accumulate incoming light
 
   		maskColor *= color;
@@ -266,6 +281,6 @@ void main()
 
   		ray = tangentspace * randomPointOnHemisphere(fragID + bounce, hspheresize); // compute next ray
 	}
-   
+
     fragColor = vec4(pathColor, 1.0);
 }
