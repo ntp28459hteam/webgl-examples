@@ -182,34 +182,27 @@ float shadow(
 	return a;
 }
 
-mat3 computeTbn(in vec3 N, in vec3 position, in vec2 uv)
+mat3 computeTbn(in vec3 N, const in vec3 triangle[3], in vec2 uv)
 {
-    vec3 E1 = dFdx(position);
-    vec3 E2 = dFdy(position);
-    vec2 st1 = dFdx(uv);
-    vec2 st2 = dFdy(uv);
+    mat3 tangentspace;
+    vec3 e0 = triangle[1] - triangle[0];
+	vec3 e1 = triangle[2] - triangle[0];
 
-    vec3 T = (-st2.t * E1 + st1.t * E2) / (st1.t * st2.s - st1.s * st2.t);
-    vec3 B = ( st2.s * E1 - st1.s * E2) / (st1.t * st2.s - st1.s * st2.t);
+    tangentspace[0] = normalize(e0);
+    tangentspace[1] = normalize(cross(tangentspace[0], e1));
+    tangentspace[2] = normalize(cross(tangentspace[1], tangentspace[0]));
 
-    vec3 Tn = normalize(T - dot(T, N) * N);
-    vec3 Bn = normalize(B - dot(B, N) * N - dot(B, Tn) * Tn);
-
-    return mat3(Tn, Bn, N);
+    return tangentspace;
 }
 
 
 // retrieve normal of triangle, and provide tangentspace
-vec3 normal(
-	const in vec3 triangle[3]
-,	out mat3 tangentspace)
+vec3 normal(const in vec3 triangle[3])
 {
 	vec3 e0 = triangle[1] - triangle[0];
 	vec3 e1 = triangle[2] - triangle[0];
 
     vec3 n = normalize(cross(e0, e1));
-
-    tangentspace = computeTbn(n, triangle[0], v_uv);
 
     return n;
 }
@@ -238,8 +231,6 @@ void main()
 {
     vec3 origin = u_eye;
     vec3 ray = normalize(v_ray - origin);
-	vec3 n;
-	mat3 tangentspace;
 
 	ivec2 hspheresize = textureSize(u_hsphere, 0);
 	ivec2 lightssize = textureSize(u_lights, 0);
@@ -248,20 +239,17 @@ void main()
 	vec2 xy = v_uv * vec2(u_viewport[0], u_viewport[1]);
 	int fragID = int(xy.y * u_viewport[0] + xy.x + float(u_frame) + float(u_rand));
 
-
-	// triangle data
-    vec3 triangle[3];
-    vec3 color;
-    int colorIndex;
-
 	// path color accumulation
 	vec3 maskColor = vec3(1.0);
 	vec3 pathColor = vec3(0.0);
 
 	float t = INFINITY;
 
-	for(int bounce = 0; bounce < 4; ++bounce)
+	for(int bounce = 0; bounce < 8; ++bounce)
 	{
+        // triangle data
+        vec3 triangle[3];
+        int colorIndex;
   		t = intersection(origin, ray, triangle, colorIndex); // compute t from objects
 
 		// TODO: break on no intersection, with correct path color weight?
@@ -269,7 +257,9 @@ void main()
 			break;
 
 		origin = origin + ray * t;
-		n = normal(triangle, tangentspace);
+
+		vec3 n = normal(triangle);
+        mat3 tangentspace = computeTbn(n, triangle, v_uv);
 
   		vec3 color = texelFetch(u_colors, ivec2(colorIndex, 0), 0).xyz; // compute material color from hit
   		float lighting = shadow(fragID + bounce, lightssize, origin, n) * 0.4; // compute direct lighting from hit

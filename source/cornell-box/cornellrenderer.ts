@@ -97,11 +97,11 @@ export class CornellRenderer extends gloperate.AbstractRenderer {
         gl.uniform1i(this._uFrame, frameNumber);
         gl.uniform1i(this._uRand, Math.floor(Math.random() * 1e6));
         gl.uniform3fv(this._uEye, this._camera.eye);
-        gl.uniform4fv(this._uViewport, vec4.fromValues(
+        gl.uniform4f(this._uViewport,
             this._camera.viewport[0],
             this._camera.viewport[1],
             1.0 / this._camera.viewport[0],
-            1.0 / this._camera.viewport[1]));
+            1.0 / this._camera.viewport[1]);
 
         this._verticesImage.bind(gl.TEXTURE0);
         this._indicesImage.bind(gl.TEXTURE1);

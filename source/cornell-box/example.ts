@@ -11,7 +11,7 @@ function onload() {
     const renderer = new CornellRenderer();
     canvas.renderer = renderer;
     canvas.framePrecision = `float`;
-    canvas.controller.multiFrameNumber = 64;
+    canvas.controller.multiFrameNumber = 128;
 
     // export variables
     (window as any)['canvas'] = canvas;
