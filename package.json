@@ -54,7 +54,6 @@
         "examples"
     ],
     "dependencies": {
-        "http-server": "^0.11.1",
         "webgl-operate": "^0.1.16"
     }
 }
