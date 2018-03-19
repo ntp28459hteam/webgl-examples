@@ -3,6 +3,6 @@
         "test-renderer",
         "camera-navigation",
         "cornell-box",
-        "sky-triangle",
+        "sky-triangle"
     ]
 }

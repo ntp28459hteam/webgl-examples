@@ -1,7 +1,8 @@
 
 import {
-    AccumulatePass, AntiAliasingKernel, auxiliaries, BlitPass, Context, DefaultFramebuffer, Framebuffer,
-    Invalidate, MouseEventProvider, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2,
+    AccumulatePass, AntiAliasingKernel, auxiliaries, BlitPass, Context, debug, DefaultFramebuffer,
+    Framebuffer, Invalidate, MouseEventProvider, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader,
+    Texture2,
 } from 'webgl-operate';
 
 
@@ -23,7 +24,7 @@ export class TestRenderer extends Renderer {
     protected _depthRenderbuffer: Renderbuffer;
     protected _intermediateFBO: Framebuffer;
 
-    protected _testNavigation: gloperate.debug.TestNavigation;
+    protected _testNavigation: debug.TestNavigation;
 
 
     protected onUpdate(): boolean {
@@ -152,7 +153,7 @@ export class TestRenderer extends Renderer {
 
         /* Create and configure test navigation. */
 
-        this._testNavigation = new gloperate.debug.TestNavigation(() => this.invalidate(), mouseEventProvider);
+        this._testNavigation = new debug.TestNavigation(() => this.invalidate(), mouseEventProvider);
 
         return true;
     }

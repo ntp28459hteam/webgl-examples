@@ -1,7 +1,10 @@
 
 import { mat4, vec3 } from 'gl-matrix';
 
-import * as gloperate from 'webgl-operate';
+import {
+    BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer, Invalidate, MouseEventProvider, Program, Renderbuffer,
+    Renderer, Shader, Texture2, TextureCube, Wizard,
+} from 'webgl-operate';
 
 
 import { Cube } from './cube';
@@ -9,24 +12,24 @@ import { Skybox } from './skybox';
 import { TrackballNavigation } from './trackballnavigation';
 
 
-export class CameraNavigationRenderer extends gloperate.Renderer {
+export class CameraNavigationRenderer extends Renderer {
 
     protected _extensions = false;
 
     // FBO and Blit
-    protected _defaultFBO: gloperate.DefaultFramebuffer;
-    protected _colorRenderTexture: gloperate.Texture2;
-    protected _depthRenderbuffer: gloperate.Renderbuffer;
-    protected _intermediateFBO: gloperate.Framebuffer;
-    protected _blit: gloperate.BlitPass;
+    protected _defaultFBO: DefaultFramebuffer;
+    protected _colorRenderTexture: Texture2;
+    protected _depthRenderbuffer: Renderbuffer;
+    protected _intermediateFBO: Framebuffer;
+    protected _blit: BlitPass;
 
     // Camera and navigation
-    protected _camera: gloperate.Camera;
+    protected _camera: Camera;
     protected _navigation: TrackballNavigation;
 
     // Flying cubes
     protected _cube: Cube;
-    protected _cubeProgram: gloperate.Program;
+    protected _cubeProgram: Program;
     protected _uViewProjection: WebGLUniformLocation;
     protected _uModel: WebGLUniformLocation;
     protected _aCubeVertex: GLuint;
@@ -37,7 +40,7 @@ export class CameraNavigationRenderer extends gloperate.Renderer {
     protected _cubeMatrix4: mat4;
 
     // SkyBox
-    protected _cubeMap: gloperate.TextureCube;
+    protected _cubeMap: TextureCube;
     protected _skyBox: Skybox;
     protected _cubeMapChanged: boolean;
 
@@ -130,8 +133,8 @@ export class CameraNavigationRenderer extends gloperate.Renderer {
     protected loadImages(): void {
         const gl = this.context.gl;
 
-        this._cubeMap = new gloperate.TextureCube(this.context);
-        const internalFormatAndType = gloperate.Wizard.queryInternalTextureFormat(this.context, gl.RGB, 'byte');
+        this._cubeMap = new TextureCube(this.context);
+        const internalFormatAndType = Wizard.queryInternalTextureFormat(this.context, gl.RGB, 'byte');
         this._cubeMap.initialize(1, 1, internalFormatAndType[0], gl.RGB, internalFormatAndType[1]);
         this._cubeMapChanged = false;
 
@@ -168,11 +171,7 @@ export class CameraNavigationRenderer extends gloperate.Renderer {
         nz.addEventListener('load', callback);
     }
 
-    initialize(context: gloperate.Context, callback: gloperate.Invalidate,
-        mouseEventProvider: gloperate.MouseEventProvider,
-        // keyEventProvider: gloperate.KeyEventProvider,
-        // touchEventProvider: gloperate.TouchEventProvider
-    ): boolean {
+    protected onInitialize(context: Context, callback: Invalidate, mouseEventProvider: MouseEventProvider): boolean {
         if (!super.initialize(context, callback, mouseEventProvider)) {
             return false;
         }
@@ -184,11 +183,11 @@ export class CameraNavigationRenderer extends gloperate.Renderer {
         this.loadImages();
 
         // Initialize program
-        const vert = new gloperate.Shader(this.context, gl.VERTEX_SHADER, 'cube.vert');
+        const vert = new Shader(this.context, gl.VERTEX_SHADER, 'cube.vert');
         vert.initialize(require('./cube.vert'));
-        const frag = new gloperate.Shader(this.context, gl.FRAGMENT_SHADER, 'cube.frag');
+        const frag = new Shader(this.context, gl.FRAGMENT_SHADER, 'cube.frag');
         frag.initialize(require('./cube.frag'));
-        this._cubeProgram = new gloperate.Program(this.context);
+        this._cubeProgram = new Program(this.context);
         this._cubeProgram.initialize([vert, frag]);
         this._uViewProjection = this._cubeProgram.uniform('u_viewProjection');
         this._uModel = this._cubeProgram.uniform('u_model');
@@ -218,7 +217,7 @@ export class CameraNavigationRenderer extends gloperate.Renderer {
         this._cubeMatrix4 = mat4.multiply(mat4.create(), translate4, scaleSmall);
 
         // Initialize camera
-        this._camera = new gloperate.Camera();
+        this._camera = new Camera();
         this._camera.center = vec3.fromValues(0.0, 0.0, 0.0);
         this._camera.up = vec3.fromValues(0.0, 1.0, 0.0);
         this._camera.eye = vec3.fromValues(0.0, 0.0, 2.0);
@@ -230,17 +229,17 @@ export class CameraNavigationRenderer extends gloperate.Renderer {
         this._navigation.initialize(this._camera);
 
         // Initialize FBO & BlitPass
-        this._defaultFBO = new gloperate.DefaultFramebuffer(this.context, 'DefaultFBO');
+        this._defaultFBO = new DefaultFramebuffer(this.context, 'DefaultFBO');
         this._defaultFBO.initialize();
-        this._colorRenderTexture = new gloperate.Texture2(this.context, 'ColorRenderTexture');
+        this._colorRenderTexture = new Texture2(this.context, 'ColorRenderTexture');
         this._colorRenderTexture.initialize(480, 270,
             this.context.isWebGL2 ? gl.RGBA8 : gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE);
-        this._depthRenderbuffer = new gloperate.Renderbuffer(this.context, 'DepthRenderbuffer');
+        this._depthRenderbuffer = new Renderbuffer(this.context, 'DepthRenderbuffer');
         this._depthRenderbuffer.initialize(480, 270, gl.DEPTH_COMPONENT16);
-        this._intermediateFBO = new gloperate.Framebuffer(this.context, 'IntermediateFBO');
+        this._intermediateFBO = new Framebuffer(this.context, 'IntermediateFBO');
         this._intermediateFBO.initialize([[gl2facade.COLOR_ATTACHMENT0, this._colorRenderTexture]
             , [gl.DEPTH_ATTACHMENT, this._depthRenderbuffer]]);
-        this._blit = new gloperate.BlitPass(this.context);
+        this._blit = new BlitPass(this.context);
         this._blit.initialize();
         this._blit.framebuffer = this._intermediateFBO;
         this._blit.readBuffer = gl2facade.COLOR_ATTACHMENT0;
@@ -254,7 +253,7 @@ export class CameraNavigationRenderer extends gloperate.Renderer {
         return true;
     }
 
-    uninitialize(): void {
+    protected onUninitialize(): void {
         super.uninitialize();
 
         this._cube.uninitialize();
