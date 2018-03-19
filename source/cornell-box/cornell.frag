@@ -26,7 +26,7 @@ uniform sampler2D u_hsphere;
 uniform sampler2D u_lights;
 
 varying vec2 v_uv;
-varying vec3 v_ray;
+varying vec4 v_ray;
 
 const vec3 up = vec3(0.0, 1.0, 0.0);
 
@@ -230,7 +230,7 @@ vec3 randomPointOnHemisphere(
 void main()
 {
     vec3 origin = u_eye;
-    vec3 ray = normalize(v_ray - origin);
+    vec3 ray = normalize((v_ray.xyz / v_ray.w) - origin);
 
 	ivec2 hspheresize = textureSize(u_hsphere, 0);
 	ivec2 lightssize = textureSize(u_lights, 0);

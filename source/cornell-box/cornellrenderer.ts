@@ -80,8 +80,15 @@ export class CornellRenderer extends Renderer {
             this._intermediateFBO.initialize([[gl2facade.COLOR_ATTACHMENT0, this._colorRenderTexture]
                 , [gl.DEPTH_ATTACHMENT, this._depthRenderbuffer]]);
 
-        } else if (this._altered.frameSize) {
+        }
+
+        // resize
+        if (this._altered.frameSize) {
             this._intermediateFBO.resize(this._frameSize[0], this._frameSize[1]);
+            this._camera.viewport = [this._frameSize[0], this._frameSize[1]];
+        }
+        if (this._altered.canvasSize) {
+            this._camera.aspect = this._canvasSize[0] / this._canvasSize[1];
         }
 
         if (this._altered.clearColor) {
