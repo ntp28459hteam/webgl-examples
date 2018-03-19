@@ -146,7 +146,8 @@ float shadow(
 	const in int fragID
 ,	const in ivec2 lightssize
 ,	const in vec3 origin
-,	const in vec3 n)
+,	const in vec3 n
+,   out float dist)
 {
 
     float tm = INFINITY;
@@ -161,7 +162,8 @@ float shadow(
     int x = i % lightssize[0];
     int y = i / lightssize[0];
 
-	vec3 ray = normalize(texelFetch(u_lights, ivec2(x, y), 0).rgb - origin);
+    vec3 pointInLight = texelFetch(u_lights, ivec2(x, y), 0).rgb;
+	vec3 ray = normalize(pointInLight - origin);
 
 	float a = dot(ray, n);
 
@@ -179,6 +181,9 @@ float shadow(
 		if(intersectionTriangle( tv, origin, ray, tm, t))
 			return 0.0;
 	}
+    
+    // light is visible from origin
+    dist = distance(origin, pointInLight);
 	return a;
 }
 
@@ -251,8 +256,8 @@ void main()
 	float t = INFINITY;
     float alpha = 0.0;
     float attenuationSum = 0.0;
-    int bounces = 6;
-    float gamma = 2.8;
+    int bounces = 8;
+    float gamma = 1.0;
 
 	for(int bounce = 0; bounce < bounces; ++bounce)
 	{
@@ -273,11 +278,12 @@ void main()
         tangentspace = computeTbn(n, triangle, v_uv);
 
   		vec3 color = texelFetch(u_colors, ivec2(colorIndex, 0), 0).xyz; // compute material color from hit
-  		float lighting = shadow(fragID + bounce, lightssize, origin, n); // compute direct lighting from hit
+        float distToLight = 1.0;
+  		float lighting = shadow(fragID + bounce, lightssize, origin, n, distToLight); // compute direct lighting from hit
 
   		// accumulate incoming light
 
-        float attenuation = 1.0 - float(bounce) / float(bounces * 2);
+        float attenuation = 1.0 / (distToLight * distToLight);
         attenuationSum += attenuation;
   		maskColor *= color;
   		pathColor += maskColor * lighting * attenuation;
@@ -289,5 +295,5 @@ void main()
         ray = tangentspace * rSphere; // compute next ray
 	}
 
-    fragColor = vec4(pow(pathColor / attenuationSum, vec3(1.0 / gamma)), alpha);
+    fragColor = vec4(pow(pathColor, vec3(1.0 / gamma)), alpha);
 }
