@@ -251,8 +251,8 @@ void main()
 	float t = INFINITY;
     float alpha = 0.0;
     float attenuationSum = 0.0;
-    int bounces = 6;
-    float gamma = 2.8;
+    int bounces = 8;
+    float gamma = 1.0;
 
 	for(int bounce = 0; bounce < bounces; ++bounce)
 	{
@@ -277,7 +277,7 @@ void main()
 
   		// accumulate incoming light
 
-        float attenuation = 1.0 - float(bounce) / float(bounces * 2);
+        float attenuation = 0.4; //  1.0 - float(bounce) / float(bounces * 2);
         attenuationSum += attenuation;
   		maskColor *= color;
   		pathColor += maskColor * lighting * attenuation;
@@ -289,5 +289,5 @@ void main()
         ray = tangentspace * rSphere; // compute next ray
 	}
 
-    fragColor = vec4(pow(pathColor / attenuationSum, vec3(1.0 / gamma)), alpha);
+    fragColor = vec4(pow(pathColor, vec3(1.0 / gamma)), alpha);
 }
