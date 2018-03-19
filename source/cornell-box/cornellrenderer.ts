@@ -21,7 +21,6 @@ const _gCenter = vec3.fromValues(
     +0.000000, -0.000000, +0.000000);
 const _gUp = vec3.fromValues(
     +0.000000, +1.000000, +0.000000);
-const _gFovy = 37.0;
 
 
 export class CornellRenderer extends Renderer {
@@ -62,7 +61,7 @@ export class CornellRenderer extends Renderer {
     protected onUpdate(): boolean {
 
         const angle = ((window.performance.now() * 0.01) % 360) * auxiliaries.DEG2RAD;
-        const radius = vec3.len(_gEye);
+        const radius = vec3.len(_gEye) * 0.8;
         this._camera.eye = vec3.fromValues(radius * Math.sin(angle), 0.0, radius * Math.cos(angle));
 
         return this._altered.any || this._camera.altered;
@@ -102,7 +101,6 @@ export class CornellRenderer extends Renderer {
             this._program.bind();
 
             gl.uniformMatrix4fv(this._uTransform, gl.GL_FALSE, this._camera.viewProjectionInverse);
-            gl.uniform1i(this._uRand, Math.floor(Math.random() * 1e6));
             gl.uniform3fv(this._uEye, this._camera.eye);
             gl.uniform4f(this._uViewport,
                 this._camera.viewport[0],
@@ -126,6 +124,7 @@ export class CornellRenderer extends Renderer {
         // set uniforms
         this._program.bind();
         gl.uniform1i(this._uFrame, frameNumber);
+        gl.uniform1i(this._uRand, Math.floor(Math.random() * 1e6));
 
         this._verticesImage.bind(gl.TEXTURE0);
         this._indicesImage.bind(gl.TEXTURE1);
@@ -170,7 +169,6 @@ export class CornellRenderer extends Renderer {
         this._camera.up = _gUp;
         this._camera.near = 0.1;
         this._camera.far = 4.0;
-        this._camera.fovy = _gFovy;
 
         // program
         const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cornell.vert');

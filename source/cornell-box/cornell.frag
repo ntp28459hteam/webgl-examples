@@ -272,5 +272,6 @@ void main()
   		ray = tangentspace * randomPointOnHemisphere(fragID + bounce, hspheresize); // compute next ray
 	}
 
+    //fragColor = vec4(ray * 0.5 + 0.5, 1.0);
     fragColor = vec4(pathColor, 1.0);
 }
