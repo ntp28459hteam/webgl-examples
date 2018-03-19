@@ -23,9 +23,16 @@ export class TestRenderer extends Renderer {
     protected _depthRenderbuffer: Renderbuffer;
     protected _intermediateFBO: Framebuffer;
 
+    protected _testNavigation: gloperate.debug.TestNavigation;
+
 
     protected onUpdate(): boolean {
-        return this._altered.any;
+        this._testNavigation.update();
+
+        const redraw = this._testNavigation.altered;
+        this._testNavigation.reset();
+
+        return this._altered.any || redraw;
     }
 
     protected onPrepare(): void {
@@ -143,6 +150,10 @@ export class TestRenderer extends Renderer {
         this._blit.drawBuffer = gl.BACK;
         this._blit.target = this._defaultFBO;
 
+        /* Create and configure test navigation. */
+
+        this._testNavigation = new gloperate.debug.TestNavigation(() => this.invalidate(), mouseEventProvider);
+
         return true;
     }
 
@@ -162,3 +173,4 @@ export class TestRenderer extends Renderer {
     }
 
 }
+

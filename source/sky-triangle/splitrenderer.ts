@@ -159,7 +159,6 @@ export class SplitRenderer extends Renderer {
     }
 
     protected onInitialize(context: Context, callback: Invalidate, mouseEventProvider: MouseEventProvider): boolean {
-
         const gl = this._context.gl;
         const gl2facade = this._context.gl2facade;
 

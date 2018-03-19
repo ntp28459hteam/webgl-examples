@@ -1,7 +1,8 @@
 {
     "examples": [
         "test-renderer",
+        "camera-navigation",
+        "cornell-box",
         "sky-triangle",
-        "cornell-box"
     ]
 }
