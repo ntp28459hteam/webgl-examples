@@ -1,36 +1,36 @@
 
-import * as gloperate from 'webgl-operate';
+import { Camera, Context, Program, Shader, TextureCube } from 'webgl-operate';
 
 import { Cube } from './cube';
 
 
 export class Skybox {
 
-    protected _context: gloperate.Context;
-    protected _camera: gloperate.Camera;
+    protected _context: Context;
+    protected _camera: Camera;
 
     protected _cube: Cube;
-    protected _texture: gloperate.TextureCube;
+    protected _texture: TextureCube;
 
-    protected _program: gloperate.Program;
+    protected _program: Program;
     protected _uTransform: WebGLUniformLocation;
     protected _uEye: WebGLUniformLocation;
     protected _uBackground: WebGLUniformLocation;
 
 
-    initialize(context: gloperate.Context, camera: gloperate.Camera, texture: gloperate.TextureCube): void {
+    initialize(context: Context, camera: Camera, texture: TextureCube): void {
         this._context = context;
         this._camera = camera;
         this._texture = texture;
 
         const gl = this._context.gl;
 
-        const vert = new gloperate.Shader(this._context, gl.VERTEX_SHADER, 'skybox.vert');
+        const vert = new Shader(this._context, gl.VERTEX_SHADER, 'skybox.vert');
         vert.initialize(require('./skybox.vert'));
-        const frag = new gloperate.Shader(this._context, gl.FRAGMENT_SHADER, 'skybox.frag');
+        const frag = new Shader(this._context, gl.FRAGMENT_SHADER, 'skybox.frag');
         frag.initialize(require('./skybox.frag'));
 
-        this._program = new gloperate.Program(context);
+        this._program = new Program(context);
         this._program.initialize([vert, frag]);
 
         this._uTransform = this._program.uniform('u_transform');

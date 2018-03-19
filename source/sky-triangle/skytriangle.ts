@@ -1,41 +1,40 @@
-
-import * as gloperate from 'webgl-operate';
+import { Camera, Context, NdcFillingTriangle, Program, Shader, TextureCube } from 'webgl-operate';
 
 
 export class SkyTriangle {
 
-    protected _context: gloperate.Context;
-    protected _camera: gloperate.Camera;
+    protected _context: Context;
+    protected _camera: Camera;
 
-    protected _triangle: gloperate.NdcFillingTriangle;
-    protected _texture: gloperate.TextureCube;
+    protected _triangle: NdcFillingTriangle;
+    protected _texture: TextureCube;
 
-    protected _program: gloperate.Program;
+    protected _program: Program;
     protected _uInverseViewProjection: WebGLUniformLocation;
     protected _uEye: WebGLUniformLocation;
     protected _uBackground: WebGLUniformLocation;
 
 
-    initialize(context: gloperate.Context, camera: gloperate.Camera, texture: gloperate.TextureCube): void {
+    initialize(context: Context, camera: Camera, texture: TextureCube): void {
         this._context = context;
         this._camera = camera;
         this._texture = texture;
 
         const gl = this._context.gl;
 
-        const vert = new gloperate.Shader(this._context, gl.VERTEX_SHADER, 'skytriangle.vert');
+        const vert = new Shader(this._context, gl.VERTEX_SHADER, 'skytriangle.vert');
         vert.initialize(require('./skytriangle.vert'));
-        const frag = new gloperate.Shader(this._context, gl.FRAGMENT_SHADER, 'skytriangle.frag');
+        const frag = new Shader(this._context, gl.FRAGMENT_SHADER, 'skytriangle.frag');
         frag.initialize(require('./skytriangle.frag'));
 
-        this._program = new gloperate.Program(this._context);
+        this._program = new Program(this._context);
         this._program.initialize([vert, frag]);
 
         this._uInverseViewProjection = this._program.uniform('u_inverseViewProjection');
         this._uEye = this._program.uniform('u_eye');
         this._uBackground = this._program.uniform('u_background');
 
-        this._triangle = new gloperate.NdcFillingTriangle(this._context);
+        this._triangle = new NdcFillingTriangle(this._context);
         const aVertex = this._program.attribute('a_vertex', 0);
         this._triangle.initialize(aVertex);
     }

@@ -8,9 +8,10 @@ module.exports = {
     cache: true,
     devtool: 'source-map',
     entry: {
+        'test-renderer': ['require.ts', 'test-renderer/example.ts'],
+        'camera-navigation': ['require.ts', 'camera-navigation/example.ts'],  
+        'cornell-box': ['require.ts', 'cornell-box/example.ts'],
         'sky-triangle': ['require.ts', 'sky-triangle/example.ts'],
-        'camera-navigation': ['require.ts', 'camera-navigation/example.ts'],
-        'test-renderer': ['require.ts', 'test-renderer/example.ts']
     },
     externals: {
         'webgl-operate': 'gloperate'
