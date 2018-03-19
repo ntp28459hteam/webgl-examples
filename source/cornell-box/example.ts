@@ -12,6 +12,7 @@ function onload() {
     canvas.renderer = renderer;
     canvas.framePrecision = `float`;
     canvas.controller.multiFrameNumber = 128;
+    canvas.element.addEventListener('click', () => { canvas.controller.update(); });
 
     // export variables
     (window as any)['canvas'] = canvas;

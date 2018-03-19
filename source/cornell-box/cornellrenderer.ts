@@ -18,7 +18,7 @@ import { pointsInLight } from './light';
 const _gEye = vec3.fromValues(
     +0.000000, -0.005102, -3.861230);
 const _gCenter = vec3.fromValues(
-    +0.000000, -0.005102, +0.000000);
+    +0.000000, -0.000000, +0.000000);
 const _gUp = vec3.fromValues(
     +0.000000, +1.000000, +0.000000);
 const _gFovy = 37.0;
@@ -60,7 +60,12 @@ export class CornellRenderer extends Renderer {
 
 
     protected onUpdate(): boolean {
-        return this._altered.any;
+
+        const angle = ((window.performance.now() * 0.01) % 360) * auxiliaries.DEG2RAD;
+        const radius = vec3.len(_gEye);
+        this._camera.eye = vec3.fromValues(radius * Math.sin(angle), 0.0, radius * Math.cos(angle));
+
+        return this._altered.any || this._camera.altered;
     }
 
     protected onPrepare(): void {
@@ -85,6 +90,20 @@ export class CornellRenderer extends Renderer {
 
         this._accumulate.update();
 
+
+        if (this._camera.altered) {
+            this._program.bind();
+
+            gl.uniformMatrix4fv(this._uTransform, gl.GL_FALSE, this._camera.viewProjectionInverse);
+            gl.uniform1i(this._uRand, Math.floor(Math.random() * 1e6));
+            gl.uniform3fv(this._uEye, this._camera.eye);
+            gl.uniform4f(this._uViewport,
+                this._camera.viewport[0],
+                this._camera.viewport[1],
+                1.0 / this._camera.viewport[0],
+                1.0 / this._camera.viewport[1]);
+        }
+
         this._altered.reset();
     }
 
@@ -99,16 +118,7 @@ export class CornellRenderer extends Renderer {
 
         // set uniforms
         this._program.bind();
-        gl.uniformMatrix4fv(this._uTransform, gl.GL_FALSE, this._camera.viewProjectionInverse);
-
         gl.uniform1i(this._uFrame, frameNumber);
-        gl.uniform1i(this._uRand, Math.floor(Math.random() * 1e6));
-        gl.uniform3fv(this._uEye, this._camera.eye);
-        gl.uniform4f(this._uViewport,
-            this._camera.viewport[0],
-            this._camera.viewport[1],
-            1.0 / this._camera.viewport[0],
-            1.0 / this._camera.viewport[1]);
 
         this._verticesImage.bind(gl.TEXTURE0);
         this._indicesImage.bind(gl.TEXTURE1);
@@ -133,7 +143,6 @@ export class CornellRenderer extends Renderer {
         this._blit.frame();
     }
 
-
     protected onInitialize(context: Context, callback: Invalidate, mouseEventProvider: MouseEventProvider): boolean {
         const gl = this._context.gl;
         const gl2facade = this._context.gl2facade;
@@ -152,8 +161,8 @@ export class CornellRenderer extends Renderer {
         this._camera.eye = _gEye;
         this._camera.center = _gCenter;
         this._camera.up = _gUp;
-        this._camera.near = 1.0;
-        this._camera.far = 2000.0;
+        this._camera.near = 0.1;
+        this._camera.far = 4.0;
         this._camera.fovy = _gFovy;
 
         // program
