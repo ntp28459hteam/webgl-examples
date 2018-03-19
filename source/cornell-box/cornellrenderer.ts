@@ -12,9 +12,12 @@ import { pointsInLight } from './light';
 
 
 // camera constants
-const _gEye = vec3.fromValues(278.0, 273.0, -800.0);
-const _gCenter = vec3.fromValues(278.0, 273.0, 279.6);
-const _gUp = vec3.fromValues(0.0, 1.0, 0.0);
+const _gEye = vec3.fromValues(
+    +0.000000, -0.005102, -3.861230);
+const _gCenter = vec3.fromValues(
+    +0.000000, -0.005102, +0.000000);
+const _gUp = vec3.fromValues(
+    +0.000000, +1.000000, +0.000000);
 const _gFovy = 37.0;
 
 
