@@ -17,9 +17,9 @@ import { TrackballNavigation } from './trackballnavigation';
 
 // camera constants
 const _gEye = vec3.fromValues(
-    +0.000000, -0.000000, +3.861230);
+    +0.000000, -0.000000, -3.861230);
 const _gCenter = vec3.fromValues(
-    +0.000000, -0.000000, +0.000000);
+    +0.000000, +0.000000, +0.000000);
 const _gUp = vec3.fromValues(
     +0.000000, +1.000000, +0.000000);
 
