@@ -12,6 +12,7 @@ import { colors, indices, vertices } from './scene';
 // helper functions
 import { pointsOnSphere } from './icosphere';
 import { pointsInLight } from './light';
+import { TrackballNavigation } from './trackballnavigation';
 
 
 // camera constants
@@ -29,6 +30,7 @@ export class CornellRenderer extends Renderer {
 
     // stuff
     protected _camera: Camera;
+    protected _navigation: TrackballNavigation;
     protected _ndcTriangle: NdcFillingTriangle;
 
     // program and uniforms
@@ -63,11 +65,10 @@ export class CornellRenderer extends Renderer {
 
     protected onUpdate(): boolean {
 
-        const angle = (180 - (window.performance.now() * 0.01) % 360) * auxiliaries.DEG2RAD;
-        const radius = vec3.len(_gEye);
-        this._camera.eye = vec3.fromValues(radius * Math.sin(angle), 0.0, radius * Math.cos(angle));
-
         this._ndcOffsetKernel = new AntiAliasingKernel(this._multiFrameNumber);
+
+        // Update camera navigation (process events)
+        this._navigation.update();
 
         return this._altered.any || this._camera.altered;
     }
@@ -115,6 +116,7 @@ export class CornellRenderer extends Renderer {
         }
 
         this._altered.reset();
+        this._camera.altered = false;
     }
 
     protected onFrame(frameNumber: number): void {
@@ -179,6 +181,11 @@ export class CornellRenderer extends Renderer {
         this._camera.up = _gUp;
         this._camera.near = 0.1;
         this._camera.far = 4.0;
+
+        // Initialize navigation
+        this._navigation = new TrackballNavigation(callback, mouseEventProvider);
+        this._navigation.initialize(this._camera);
+
 
         // program
         const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cornell.vert');
