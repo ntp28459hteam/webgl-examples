@@ -1,7 +1,7 @@
 
 import {
-    AccumulatePass, auxiliaries, BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer, Invalidate,
-    MouseEventProvider, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2,
+    AccumulatePass, AntiAliasingKernel, auxiliaries, BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer,
+    Invalidate, MouseEventProvider, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2,
 } from 'webgl-operate';
 
 import { vec3, vec4 } from 'gl-matrix';
@@ -40,6 +40,9 @@ export class CornellRenderer extends Renderer {
     protected _uEye: WebGLUniformLocation;
     protected _uViewport: WebGLUniformLocation;
 
+    protected _ndcOffsetKernel: AntiAliasingKernel;
+    protected _uNdcOffset: WebGLUniformLocation;
+
     // Textures
     protected _verticesImage: Texture2;
     protected _indicesImage: Texture2;
@@ -60,9 +63,11 @@ export class CornellRenderer extends Renderer {
 
     protected onUpdate(): boolean {
 
-        const angle = ((window.performance.now() * 0.01) % 360) * auxiliaries.DEG2RAD;
-        const radius = vec3.len(_gEye) * 0.8;
+        const angle = (180 - (window.performance.now() * 0.01) % 360) * auxiliaries.DEG2RAD;
+        const radius = vec3.len(_gEye);
         this._camera.eye = vec3.fromValues(radius * Math.sin(angle), 0.0, radius * Math.cos(angle));
+
+        this._ndcOffsetKernel = new AntiAliasingKernel(this._multiFrameNumber);
 
         return this._altered.any || this._camera.altered;
     }
@@ -121,10 +126,15 @@ export class CornellRenderer extends Renderer {
         this._intermediateFBO.bind();
         this._intermediateFBO.clear(gl.COLOR_BUFFER_BIT, false, false);
 
+        const ndcOffset = this._ndcOffsetKernel.get(frameNumber);
+        ndcOffset[0] = 2.0 * ndcOffset[0] / this._frameSize[0];
+        ndcOffset[1] = 2.0 * ndcOffset[1] / this._frameSize[1];
+
         // set uniforms
         this._program.bind();
         gl.uniform1i(this._uFrame, frameNumber);
         gl.uniform1i(this._uRand, Math.floor(Math.random() * 1e6));
+        gl.uniform2fv(this._uNdcOffset, ndcOffset);
 
         this._verticesImage.bind(gl.TEXTURE0);
         this._indicesImage.bind(gl.TEXTURE1);
@@ -249,6 +259,9 @@ export class CornellRenderer extends Renderer {
         this._lightsImage.data(lights2);
         this._lightsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
         this._lightsImage.filter(gl.NEAREST, gl.NEAREST);
+
+        // ndc offset for anti-aliasing
+        this._uNdcOffset = this._program.uniform('u_ndcOffset');
 
         // framebuffers, textures, and render buffers
         this._defaultFBO = new DefaultFramebuffer(this._context, 'DefaultFBO');

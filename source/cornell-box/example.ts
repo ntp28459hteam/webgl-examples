@@ -1,17 +1,19 @@
 
 
-import * as gloperate from 'webgl-operate';
+import { Canvas, Color } from 'webgl-operate';
 
 import { CornellRenderer } from './cornellrenderer';
 
 
 function onload() {
-    const canvas = new gloperate.Canvas('example-canvas');
+    const canvas = new Canvas('example-canvas');
     const context = canvas.context;
     const renderer = new CornellRenderer();
     canvas.renderer = renderer;
     canvas.framePrecision = `float`;
-    canvas.controller.multiFrameNumber = 128;
+    canvas.frameScale = [0.5, 0.5];
+    canvas.clearColor = new Color([0.0, 0.0, 0.0, 1.0]);
+    canvas.controller.multiFrameNumber = 1024;
     canvas.element.addEventListener('click', () => { canvas.controller.update(); });
 
     // export variables

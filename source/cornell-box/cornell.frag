@@ -41,7 +41,7 @@ bool intersectionTriangle(
 ,	const in float tm
 ,   out float t)
 {
-	vec3 e0 = triangle[1] - triangle[0];
+    vec3 e0 = triangle[1] - triangle[0];
 	vec3 e1 = triangle[2] - triangle[0];
 
 	vec3  h = cross(ray, e1);
@@ -182,15 +182,17 @@ float shadow(
 	return a;
 }
 
-mat3 computeTbn(in vec3 N, const in vec3 triangle[3], in vec2 uv)
+mat3 computeTbn(in vec3 normal, const in vec3 triangle[3], in vec2 uv)
 {
+    vec3 mathlyCorrectly = normalize(vec3(-1.241284e-02, -7.011432e-01, +2.043006e-01));
+    mathlyCorrectly = mix(mathlyCorrectly, normalize(vec3(+2.019038e-01, +9.717299e-01, +1.223763e-01)), step(0.0, abs(dot(mathlyCorrectly, normal))));
     mat3 tangentspace;
-    vec3 e0 = triangle[1] - triangle[0];
-	vec3 e1 = triangle[2] - triangle[0];
+    vec3 e0 = cross(mathlyCorrectly, normal); // triangle[1] - triangle[0];
+	vec3 e1 = cross(e0, normal); // triangle[2] - triangle[0];
 
-    tangentspace[0] = normalize(e0);
-    tangentspace[1] = normalize(cross(tangentspace[0], e1));
-    tangentspace[2] = normalize(cross(tangentspace[1], tangentspace[0]));
+    tangentspace[0] = e0; //normalize(e0);
+    tangentspace[1] = normal; // normalize(cross(tangentspace[0], normalize(e1)));
+    tangentspace[2] = e1; //normalize(cross(tangentspace[1], tangentspace[0]));
 
     return tangentspace;
 }
@@ -208,9 +210,7 @@ vec3 normal(const in vec3 triangle[3])
 }
 
 // select random point on hemisphere
-vec3 randomPointOnHemisphere(
-	const in int fragID
-,	const in ivec2 hspheresize)
+vec3 randomPointOnHemisphere(const in int fragID, const in ivec2 hspheresize)
 {
 	int i = fragID % (hspheresize[0] * hspheresize[1]);
 
@@ -242,10 +242,19 @@ void main()
 	// path color accumulation
 	vec3 maskColor = vec3(1.0);
 	vec3 pathColor = vec3(0.0);
+	vec3 lastColor = vec3(0.0);
+    
+    mat3 tangentspace;
+    vec3 rSphere;
+    
 
 	float t = INFINITY;
+    float alpha = 0.0;
+    float attenuationSum = 0.0;
+    int bounces = 6;
+    float gamma = 2.8;
 
-	for(int bounce = 0; bounce < 8; ++bounce)
+	for(int bounce = 0; bounce < bounces; ++bounce)
 	{
         // triangle data
         vec3 triangle[3];
@@ -256,22 +265,29 @@ void main()
 		if(t == INFINITY)
 			break;
 
+        alpha = 1.0;
+
 		origin = origin + ray * t;
 
 		vec3 n = normal(triangle);
-        mat3 tangentspace = computeTbn(n, triangle, v_uv);
+        tangentspace = computeTbn(n, triangle, v_uv);
 
   		vec3 color = texelFetch(u_colors, ivec2(colorIndex, 0), 0).xyz; // compute material color from hit
-  		float lighting = shadow(fragID + bounce, lightssize, origin, n) * 0.4; // compute direct lighting from hit
+  		float lighting = shadow(fragID + bounce, lightssize, origin, n); // compute direct lighting from hit
 
   		// accumulate incoming light
 
+        float attenuation = 1.0 - float(bounce) / float(bounces * 2);
+        attenuationSum += attenuation;
   		maskColor *= color;
-  		pathColor += maskColor * lighting;
+  		pathColor += maskColor * lighting * attenuation;
+        lastColor = color * lighting;
 
-  		ray = tangentspace * randomPointOnHemisphere(fragID + bounce, hspheresize); // compute next ray
+        rSphere = randomPointOnHemisphere(fragID + bounce, hspheresize);
+
+        // ray = reflect(ray, n);
+        ray = tangentspace * rSphere; // compute next ray
 	}
 
-    //fragColor = vec4(ray * 0.5 + 0.5, 1.0);
-    fragColor = vec4(pathColor, 1.0);
+    fragColor = vec4(pow(pathColor / attenuationSum, vec3(1.0 / gamma)), alpha);
 }

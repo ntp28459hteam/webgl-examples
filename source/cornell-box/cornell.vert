@@ -13,6 +13,7 @@ precision lowp float;
 
 uniform mat4 u_transform;
 uniform vec3 u_eye;
+uniform vec2 u_ndcOffset;
 
 varying vec2 v_uv;
 varying vec4 v_ray;
@@ -20,6 +21,7 @@ varying vec4 v_ray;
 void main()
 {
     v_uv = a_vertex * 0.5 + 0.5; 
-    v_ray = u_transform * vec4(a_vertex, 1.0, 1.0);
+    v_ray = u_transform * vec4(u_ndcOffset + a_vertex, 1.0, 1.0);
+
     gl_Position = vec4(a_vertex, 1.0, 1.0);
 }
