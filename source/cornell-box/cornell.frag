@@ -12,7 +12,7 @@ precision lowp usampler2D;
 #endif
 
 
-const int NUM_TRIANGLES = 32;
+const int NUM_TRIANGLES = 30;
 const int NUM_VERTICES = 24;
 const int NUM_COLORS = 5;
 
@@ -44,8 +44,8 @@ const int indices[NUM_TRIANGLES * 4] = int[NUM_TRIANGLES * 4]
     4, 0, 1, 1,
     4, 1, 5, 1,
     // room front wall
-    6, 2, 0, 1,
-    6, 0, 4, 1,
+    // 6, 2, 0, 1,
+    // 6, 0, 4, 1,
     // room back wall
     5, 1, 3, 1,
     5, 3, 7, 1,
@@ -100,14 +100,14 @@ varying vec2 v_uv;
 varying vec4 v_ray;
 
 const vec3 up = vec3(0.0, 1.0, 0.0);
-const vec4 SPHERE = vec4(0.7, 0.7, 0.7, 0.2); // center, radius
+const vec4 SPHERE = vec4(-0.5, +0.0, +0.5, 0.25); // center, radius
 const vec3 LIGHT_COLOR = vec3(1.0, 10.76 / 16.86, 3.7 / 16.86);
 
 const float EPSILON  = 1e-6;
 const float INFINITY = 1e+4;
 
 const int BOUNCES = 6;
-const float EXPOSURE = 5.2;
+const float EXPOSURE = 4.0;
 const float GAMMA = 2.1;
 
 
@@ -187,7 +187,7 @@ float intersection(
     int colorIndex;
 
     // intersection with triangles
-	for(int i = 0; i < 32; ++i)
+	for(int i = 0; i < NUM_TRIANGLES; ++i)
 	{
         vec3 triangle[3];
 		triangle[0] = vertexFetch(indices[i*4+0]);
@@ -200,9 +200,9 @@ float intersection(
                 triangle[1] - triangle[0],
                 triangle[2] - triangle[0]
             ));
-			colorIndex = indices[i*4+3];
+			colorIndex = indices[i * 4 + 3];
 			t_min = t;
-            reflecting = colorIndex == 3;
+            reflecting = colorIndex == 5;
 		}
 	}
 
