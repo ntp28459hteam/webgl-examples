@@ -11,7 +11,12 @@ precision lowp usampler2D;
     layout(location = 0) out vec4 fragColor;
 #endif
 
-const float vertices[72] = float[72]
+
+const int NUM_TRIANGLES = 32;
+const int NUM_VERTICES = 24;
+const int NUM_COLORS = 5;
+
+const float vertices[NUM_VERTICES * 3] = float[NUM_VERTICES * 3]
 (   // room
     -1.000000, -1.000000, -1.000000, -1.000000, -1.000000, +1.000000,
     -1.000000, +1.000000, -1.000000, -1.000000, +1.000000, +1.000000,
@@ -29,13 +34,58 @@ const float vertices[72] = float[72]
     -0.046763, -1.000000, +0.058655, -0.046763, +0.202624, +0.058655
 );
 
-// uniform sampler2D u_colors;   // 1D
-const float colors[15] = float[15]
-    (0.0000, 0.0000, 0.0000,  // 0 black
-     0.7295, 0.7355, 0.7290,  // 1 white
-     0.6110, 0.0555, 0.0620,  // 2 red
-     0.1170, 0.4125, 0.1150,  // 3 green
-     0.0620, 0.0555, 0.6110   // 4 blue
+// v0, v1, v2, color
+const int indices[NUM_TRIANGLES * 4] = int[NUM_TRIANGLES * 4]
+(
+    // room ceiling
+    6, 7, 3, 1,
+    6, 3, 2, 1,
+    // room floor
+    4, 0, 1, 1,
+    4, 1, 5, 1,
+    // room front wall
+    6, 2, 0, 1,
+    6, 0, 4, 1,
+    // room back wall
+    5, 1, 3, 1,
+    5, 3, 7, 1,
+    // room right wall
+    1, 0, 2, 3,
+    1, 2, 3, 3,
+    // room left wall
+    4, 5, 7, 2,
+    4, 7, 6, 2,
+    // short block
+    15, 13, 11, 1,
+    15, 11,  9, 1,
+     8,  9, 11, 1,
+     8, 11, 10, 1,
+    14, 15,  9, 1,
+    14,  9,  8, 1,
+    12, 13, 15, 1,
+    12, 15, 14, 1,
+    10, 11, 13, 1,
+    10, 13, 12, 1,
+    // tall block
+    23, 21, 19, 1,
+    23, 19, 17, 1,
+    16, 17, 19, 1,
+    16, 19, 18, 1,
+    22, 23, 17, 1,
+    22, 17, 16, 1,
+    20, 21, 23, 1,
+    20, 23, 22, 1,
+    18, 19, 21, 1,
+    18, 21, 20, 1
+);
+
+const float colors[NUM_COLORS * 3] = float[NUM_COLORS * 3]
+(
+    0.0000, 0.0000, 0.0000,  // 0 black
+    0.7295, 0.7355, 0.7290,  // 1 white
+    0.6110, 0.0555, 0.0620,  // 2 red
+    0.1170, 0.4125, 0.1150,  // 3 green
+    0.0620, 0.0555, 0.6110   // 4 blue
 ); 
 
 uniform int u_frame;
@@ -43,7 +93,6 @@ uniform int u_rand;
 uniform vec3 u_eye;
 uniform vec4 u_viewport;
 
-uniform usampler2D u_indices; // 1D
 uniform sampler2D u_hsphere;
 uniform sampler2D u_lights;
 
@@ -63,8 +112,7 @@ const float GAMMA = 2.1;
 
 
 vec3 vertexFetch(const in int index) {
-    int i = index - 4;
-    return vec3(vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]);
+    return vec3(vertices[index * 3 + 0], vertices[index * 3 + 1], vertices[index * 3 + 2]);
 }
 
 
@@ -118,7 +166,7 @@ bool intersectionSphere(
     float dist = length(rayOriginToSphereCenter);
     float dot_term = dot(ray, rayOriginToSphereCenter);
     float someVar = dot_term * dot_term - dist * dist + radius * radius;
-    if (someVar <= 0.0) { // no intersection
+    if (someVar < EPSILON) { // no intersection
         return false;
     }
     t = -dot_term - sqrt(someVar);
@@ -137,17 +185,13 @@ float intersection(
 
     int colorIndex;
 
-	vec3 triangle[3];
-	ivec4 triangleIndices;
-
     // intersection with triangles
 	for(int i = 0; i < 32; ++i)
 	{
-		triangleIndices = ivec4(texelFetch(u_indices, ivec2(i, 0), 0));
-
-		triangle[0] = vertexFetch(triangleIndices[0]);
-		triangle[1] = vertexFetch(triangleIndices[1]);
-		triangle[2] = vertexFetch(triangleIndices[2]);
+        vec3 triangle[3];
+		triangle[0] = vertexFetch(indices[i*4+0]);
+		triangle[1] = vertexFetch(indices[i*4+1]);
+		triangle[2] = vertexFetch(indices[i*4+2]);
 
 		if(intersectionTriangle(triangle, origin, ray, t_min, t))
 		{
@@ -155,7 +199,7 @@ float intersection(
                 triangle[1] - triangle[0],
                 triangle[2] - triangle[0]
             ));
-			colorIndex = triangleIndices[3];
+			colorIndex = indices[i*4+3];
 			t_min = t;
 		}
 	}
@@ -163,7 +207,8 @@ float intersection(
     // intersection with sphere
     if(intersectionSphere(SPHERE, origin, ray, t_min, t))
     {
-        normal = normalize(origin - SPHERE.xyz);
+        vec3 intersectionPoint = origin + ray*t;
+        normal = normalize(intersectionPoint - SPHERE.xyz);
         colorIndex = 4;
         t_min = t;
     }
