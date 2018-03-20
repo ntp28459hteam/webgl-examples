@@ -7,7 +7,7 @@ import {
 import { vec3, vec4 } from 'gl-matrix';
 
 // scene data
-import { colors, indices, vertices } from './scene';
+import { indices, vertices } from './scene';
 
 // helper functions
 import { pointsOnSphere } from './icosphere';
@@ -17,7 +17,7 @@ import { TrackballNavigation } from './trackballnavigation';
 
 // camera constants
 const _gEye = vec3.fromValues(
-    +0.000000, -0.000000, -3.861230);
+    +0.000000, +0.005102, -3.861230);
 const _gCenter = vec3.fromValues(
     +0.000000, +0.000000, +0.000000);
 const _gUp = vec3.fromValues(
@@ -46,10 +46,8 @@ export class CornellRenderer extends Renderer {
     protected _uNdcOffset: WebGLUniformLocation;
 
     // Textures
-    protected _verticesImage: Texture2;
+    // protected _verticesImage: Texture2;
     protected _indicesImage: Texture2;
-    protected _colorsImage: Texture2;
-
     protected _hsphereImage: Texture2;
     protected _lightsImage: Texture2;
 
@@ -138,12 +136,10 @@ export class CornellRenderer extends Renderer {
         gl.uniform1i(this._uRand, Math.floor(Math.random() * 1e6));
         gl.uniform2fv(this._uNdcOffset, ndcOffset);
 
-        this._verticesImage.bind(gl.TEXTURE0);
-        this._indicesImage.bind(gl.TEXTURE1);
-        this._colorsImage.bind(gl.TEXTURE2);
-
-        this._hsphereImage.bind(gl.TEXTURE3);
-        this._lightsImage.bind(gl.TEXTURE4);
+        // this._verticesImage.bind(gl.TEXTURE0);
+        this._indicesImage.bind(gl.TEXTURE0);
+        this._hsphereImage.bind(gl.TEXTURE1);
+        this._lightsImage.bind(gl.TEXTURE2);
 
         // render geometry
         this._ndcTriangle.bind();
@@ -203,11 +199,10 @@ export class CornellRenderer extends Renderer {
         this._uViewport = this._program.uniform('u_viewport');
 
         this._program.bind();
-        gl.uniform1i(this._program.uniform('u_vertices'), 0);
-        gl.uniform1i(this._program.uniform('u_indices'), 1);
-        gl.uniform1i(this._program.uniform('u_colors'), 2);
-        gl.uniform1i(this._program.uniform('u_hsphere'), 3);
-        gl.uniform1i(this._program.uniform('u_lights'), 4);
+        // gl.uniform1i(this._program.uniform('u_vertices'), 0);
+        gl.uniform1i(this._program.uniform('u_indices'), 0);
+        gl.uniform1i(this._program.uniform('u_hsphere'), 1);
+        gl.uniform1i(this._program.uniform('u_lights'), 2);
         this._program.unbind();
 
         // triangle
@@ -216,11 +211,11 @@ export class CornellRenderer extends Renderer {
         this._ndcTriangle.initialize(aVertex);
 
         // scene textures
-        this._verticesImage = new Texture2(this._context, 'verticesImage');
-        this._verticesImage.initialize(vertices.length / 3, 1, gl.RGB32F, gl.RGB, gl.FLOAT); // height 1
-        this._verticesImage.data(vertices);
-        this._verticesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
-        this._verticesImage.filter(gl.NEAREST, gl.NEAREST);
+        // this._verticesImage = new Texture2(this._context, 'verticesImage');
+        // this._verticesImage.initialize(vertices.length / 3, 1, gl.RGB32F, gl.RGB, gl.FLOAT); // height 1
+        // this._verticesImage.data(vertices);
+        // this._verticesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
+        // this._verticesImage.filter(gl.NEAREST, gl.NEAREST);
 
         this._indicesImage = new Texture2(this._context, 'indicesImage');
         this._indicesImage.initialize(indices.length / 4, 1, gl.RGBA8UI, gl.RGBA_INTEGER, gl.UNSIGNED_BYTE); // height 1
@@ -228,12 +223,12 @@ export class CornellRenderer extends Renderer {
         this._indicesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
         this._indicesImage.filter(gl.NEAREST, gl.NEAREST);
 
-        this._colorsImage = new Texture2(this._context, 'colorsImage');
-        this._colorsImage.initialize(colors.length / 4
-            , 1, gl.RGBA32F, gl.RGBA, gl.FLOAT); // height 1
-        this._colorsImage.data(colors);
-        this._colorsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
-        this._colorsImage.filter(gl.NEAREST, gl.NEAREST);
+        // this._colorsImage = new Texture2(this._context, 'colorsImage');
+        // this._colorsImage.initialize(colors.length / 4
+        //     , 1, gl.RGBA32F, gl.RGBA, gl.FLOAT); // height 1
+        // this._colorsImage.data(colors);
+        // this._colorsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
+        // this._colorsImage.filter(gl.NEAREST, gl.NEAREST);
 
         // CREATE HEMISPHERE PATH SAMPLES
         const points = pointsOnSphere(16384);
@@ -297,9 +292,9 @@ export class CornellRenderer extends Renderer {
         this._program.uninitialize();
         this._ndcTriangle.uninitialize();
 
-        this._verticesImage.uninitialize();
+        // this._verticesImage.uninitialize();
         this._indicesImage.uninitialize();
-        this._colorsImage.uninitialize();
+        // this._colorsImage.uninitialize();
         this._hsphereImage.uninitialize();
         this._lightsImage.uninitialize();
 
