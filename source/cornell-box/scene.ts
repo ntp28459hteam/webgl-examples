@@ -37,8 +37,8 @@ export let indices = new Uint8Array([
     8, 4, 5, 1,
     8, 5, 9, 1,
     // room front wall
-    // 10, 6, 4, 1,
-    // 10, 4, 8, 1,
+    10, 6, 4, 1,
+    10, 4, 8, 1,
     // room back wall
     9, 5, 7, 1,
     9, 7, 11, 1,
@@ -72,11 +72,3 @@ export let indices = new Uint8Array([
     22, 25, 24, 1,
 ]);
 
-
-// export let colors = new Float32Array([
-//     0.0000, 0.0000, 0.0000, 1.0, // 0 black
-//     0.7295, 0.7355, 0.7290, 1.0, // 1 white
-//     0.6110, 0.0555, 0.0620, 1.0, // 2 red
-//     0.1170, 0.4125, 0.1150, 1.0, // 3 green
-//     16.860, 10.760, 3.7000, 1.0, // 4 light
-// ]);

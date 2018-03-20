@@ -4,7 +4,6 @@ precision lowp usampler2D;
 
 @import ../shaders/facade.frag;
 
-
 #if __VERSION__ == 100
     #define fragColor gl_FragColor
     #extension GL_OES_standard_derivatives : enable
@@ -12,13 +11,6 @@ precision lowp usampler2D;
     layout(location = 0) out vec4 fragColor;
 #endif
 
-
-uniform int u_frame;
-uniform int u_rand;
-uniform vec3 u_eye;
-uniform vec4 u_viewport;
-
-// uniform sampler2D u_vertices; // 1D
 const float vertices[72] = float[72]
 (   // room
     -1.000000, -1.000000, -1.000000, -1.000000, -1.000000, +1.000000,
@@ -38,13 +30,18 @@ const float vertices[72] = float[72]
 );
 
 // uniform sampler2D u_colors;   // 1D
-const float colors[12] = float[12]
+const float colors[15] = float[15]
     (0.0000, 0.0000, 0.0000,  // 0 black
      0.7295, 0.7355, 0.7290,  // 1 white
      0.6110, 0.0555, 0.0620,  // 2 red
-     0.1170, 0.4125, 0.1150); // 3 green
+     0.1170, 0.4125, 0.1150,  // 3 green
+     0.0620, 0.0555, 0.6110   // 4 blue
+); 
 
-const vec3 light = vec3(1.0, 10.76 / 16.86, 3.7 / 16.86);
+uniform int u_frame;
+uniform int u_rand;
+uniform vec3 u_eye;
+uniform vec4 u_viewport;
 
 uniform usampler2D u_indices; // 1D
 uniform sampler2D u_hsphere;
@@ -54,6 +51,8 @@ varying vec2 v_uv;
 varying vec4 v_ray;
 
 const vec3 up = vec3(0.0, 1.0, 0.0);
+const vec4 SPHERE = vec4(0.7, 0.7, 0.7, 0.2); // center, radius
+const vec3 LIGHT_COLOR = vec3(1.0, 10.76 / 16.86, 3.7 / 16.86);
 
 const float EPSILON  = 1e-6;
 const float INFINITY = 1e+4;
@@ -103,17 +102,14 @@ bool intersectionTriangle(
 
 	t = f * dot(e1, q);
 
-	if (t < EPSILON)
-		return false;
-
-	return (t > 0.0) && (t < t_min);
+	return EPSILON < t && t < t_min;
 }
 
 bool intersectionSphere(
     const in vec4  sphere
 ,   const in vec3  origin
 ,   const in vec3  ray
-,   const in float tm
+,   const in float t_min
 ,   out float t)
 {
     float radius = sphere.w;
@@ -126,37 +122,55 @@ bool intersectionSphere(
         return false;
     }
     t = -dot_term - sqrt(someVar);
-    return t < tm && t > EPSILON;
+    return EPSILON < t && t < t_min;
 }
 
 // intersection with scene geometry
 float intersection(
     const in vec3 origin
 ,   const in vec3 ray
-,   out vec3 triangle[3]
-,   out int colorIndex)
+,   out vec3 normal
+,   out vec3 color)
 {
     float t_min = INFINITY;
     float t = INFINITY;
 
-	 vec3 triangleVertices[3];
+    int colorIndex;
+
+	vec3 triangle[3];
 	ivec4 triangleIndices;
 
-	for(int i = 0; i < 30; ++i)
+    // intersection with triangles
+	for(int i = 0; i < 32; ++i)
 	{
 		triangleIndices = ivec4(texelFetch(u_indices, ivec2(i, 0), 0));
 
-		triangleVertices[0] = vertexFetch(triangleIndices[0]);
-		triangleVertices[1] = vertexFetch(triangleIndices[1]);
-		triangleVertices[2] = vertexFetch(triangleIndices[2]);
+		triangle[0] = vertexFetch(triangleIndices[0]);
+		triangle[1] = vertexFetch(triangleIndices[1]);
+		triangle[2] = vertexFetch(triangleIndices[2]);
 
-		if(intersectionTriangle(triangleVertices, origin, ray, t_min, t))
+		if(intersectionTriangle(triangle, origin, ray, t_min, t))
 		{
-			triangle = triangleVertices;
+			normal = normalize(cross(
+                triangle[1] - triangle[0],
+                triangle[2] - triangle[0]
+            ));
 			colorIndex = triangleIndices[3];
 			t_min = t;
 		}
 	}
+
+    // intersection with sphere
+    if(intersectionSphere(SPHERE, origin, ray, t_min, t))
+    {
+        normal = normalize(origin - SPHERE.xyz);
+        colorIndex = 4;
+        t_min = t;
+    }
+
+    color[0] = colors[colorIndex * 3 + 0];
+    color[1] = colors[colorIndex * 3 + 1];
+    color[2] = colors[colorIndex * 3 + 2];
 
     return t_min;
 }
@@ -164,50 +178,30 @@ float intersection(
 // intersection with scene geometry
 float shadow(
 	const in int fragID
-,	const in ivec2 lightssize
 ,	const in vec3 origin
-,	const in vec3 n
-,   out float dist)
+,	const in vec3 normal
+,   out float sqDistToLight)
 {
-    float t_min = INFINITY;
-	float t = INFINITY;
-
-	 vec3 tv[3];
-	 vec4 tc;
-	ivec4 ti;
-
+    // get random point in light
+	ivec2 lightssize = textureSize(u_lights, 0);
 	int i = fragID % (lightssize[0] * lightssize[1]);
-
     int x = i % lightssize[0];
     int y = i / lightssize[0];
-
     vec3 pointInLight = texelFetch(u_lights, ivec2(x, y), 0).rgb;
-    float t_check = distance(pointInLight, origin);
-	vec3 ray = normalize(pointInLight - origin);
+    float distToLight = distance(pointInLight, origin);
 
-	float a = dot(ray, n);
+	vec3 ray_direction = normalize(pointInLight - origin);
+
+	float a = dot(ray_direction, normal);
 	if(a < EPSILON)
 	 	return 0.0;
 
-	for(int i = 0; i < 30; ++i)
-	{
-		ti = ivec4(texelFetch(u_indices, ivec2(i, 0), 0));
-
-		tv[0] = vertexFetch(ti[0]);
-		tv[1] = vertexFetch(ti[1]);
-		tv[2] = vertexFetch(ti[2]);
-
-        intersectionTriangle(tv, origin, ray, t_min, t);
-		if(t > 0.0 && t <= t_check)
-		 	return 0.0;
-	}
-
-    vec3 sphereCenter = vec3(0.7, 0.7, 0.7);
-    if(intersectionSphere(vec4(sphereCenter, 0.2), origin, ray, t_min, t))
+    vec3 v1,v2; // unused
+    float dist = intersection(origin, ray_direction, v1, v2);
+    if(EPSILON < dist && dist <= distToLight)
         return 0.0;
-    
-    vec3 delta = origin - pointInLight;
-    dist = dot(delta, delta);
+        
+    sqDistToLight = distToLight * distToLight;
 	return a;
 }
 
@@ -223,21 +217,10 @@ mat3 computeTbn(in vec3 normal)
     return mat3(e0, normal, e1);
 }
 
-
-// retrieve normal of triangle
-vec3 normal(const in vec3 triangle[3])
-{
-	vec3 e0 = triangle[1] - triangle[0];
-	vec3 e1 = triangle[2] - triangle[0];
-
-    vec3 n = normalize(cross(e0, e1));
-
-    return n;
-}
-
 // select random point on hemisphere
-vec3 randomPointOnHemisphere(const in int fragID, const in ivec2 hspheresize)
+vec3 randomPointOnHemisphere(const in int fragID)
 {
+    ivec2 hspheresize = textureSize(u_hsphere, 0);
 	int i = fragID % (hspheresize[0] * hspheresize[1]);
 
     int x = i % hspheresize[0];
@@ -248,28 +231,14 @@ vec3 randomPointOnHemisphere(const in int fragID, const in ivec2 hspheresize)
 
 // http://gpupathtracer.blogspot.de/
 // http://www.iquilezles.org/www/articles/simplepathtracing/simplepathtracing.htm
-// http://www.cs.dartmouth.edu/~fabio/teaching/graphics08/lectures/18_PathTracing_Web.pdf
 // http://undernones.blogspot.de/2010/12/gpu-ray-tracing-with-glsl.html
 // http://www.iquilezles.org/www/articles/simplegpurt/simplegpurt.htm
 // http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
 
-highp float rand(vec2 co)
-{
-    highp float a = 12.9898;
-    highp float b = 78.233;
-    highp float c = 43758.5453;
-    highp float dt= dot(co.xy ,vec2(a,b));
-    highp float sn= mod(dt,3.14);
-    return fract(sin(sn) * c);
-}
-
 void main()
 {
-    vec3 origin = u_eye;
-    vec3 ray = normalize((v_ray.xyz / v_ray.w) - origin);
-
-	ivec2 hspheresize = textureSize(u_hsphere, 0);
-	ivec2 lightssize = textureSize(u_lights, 0);
+    vec3 ray_origin = u_eye;
+    vec3 ray_direction = normalize((v_ray.xyz / v_ray.w) - ray_origin);
 
     // fragment index for random variation
 	vec2 xy = v_uv * vec2(u_viewport[0], u_viewport[1]);
@@ -278,58 +247,31 @@ void main()
 	// path color accumulation
 	vec3 maskColor = vec3(1.0);
 	vec3 pathColor = vec3(0.0);
-    
-    mat3 tangentspace;
-    vec3 rSphere;
 
-	float t = INFINITY;
+    // fragment is transparent before any intersection
     float alpha = 0.0;
+
 	for(int bounce = 0; bounce < BOUNCES; ++bounce)
 	{
-        // triangle data
-        vec3 triangle[3];
-        vec3 n;
-        int colorIndex;
+        // check intersection with scene geometry
+        vec3 normal;
+        vec3 color;
+        float dist = intersection(ray_origin, ray_direction, normal, color); 
 
-  		t = intersection(origin, ray, triangle, colorIndex); // compute t from objects
+        if(dist == INFINITY)
+            break; // TODO: break on no intersection, with correct path color weight?
 
-        float dist;
-        vec3 sphereCenter = vec3(0.7, 0.7, 0.7);
-        if(intersectionSphere(vec4(sphereCenter, 0.2), origin, ray, t, dist))
-        {
-            colorIndex = 4;
-            origin = dist*ray + origin;
-            n = normalize(origin - sphereCenter);
-        }
-        else
-        { 
-            if(t == INFINITY)
-                break; // TODO: break on no intersection, with correct path color weight?
-
-            origin = origin + ray * t;
-            n = normal(triangle);
-        }
-
-        tangentspace = computeTbn(n);
-        alpha = 1.0;
-
-        tangentspace = computeTbn(n);
-
-  		vec3 color;
-        color[0] = colors[colorIndex * 3 + 0];
-        color[1] = colors[colorIndex * 3 + 1];
-        color[2] = colors[colorIndex * 3 + 2];
-
-        float squaredDistToLight = 1.0;
-  		float lighting = shadow(fragID + bounce, lightssize, origin, n, squaredDistToLight); // compute direct lighting from hit
-
-  	    maskColor *= color;
-  		pathColor += maskColor * light * lighting / squaredDistToLight; // /* maskColor * light **/ lighting;
-
-        rSphere = randomPointOnHemisphere(fragID + bounce, hspheresize);
-
+        // update ray for next bounce
+        ray_origin = ray_origin + ray_direction * dist;
         // ray = reflect(ray, n);
-        ray = tangentspace * rSphere; // compute next ray
+        ray_direction = computeTbn(normal) * randomPointOnHemisphere(fragID + bounce);
+
+        // compute lighting and color
+        alpha = 1.0;
+        float squaredDistToLight = 1.0;
+  		float lighting = shadow(fragID + bounce, ray_origin, normal, squaredDistToLight);
+  	    maskColor *= color;
+  		pathColor += maskColor * LIGHT_COLOR * lighting / squaredDistToLight;
     }
 
     fragColor = vec4(pow(EXPOSURE * pathColor, vec3(1.0 / GAMMA)), alpha);
