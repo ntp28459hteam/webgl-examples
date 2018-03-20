@@ -78,4 +78,5 @@ export let colors = new Float32Array([
     1.0, 1.0, 1.0, 1.0, // 1 white
     1.0, 0.0, 0.0, 1.0, // 2 red
     0.0, 1.0, 0.0, 1.0, // 3 green
+    0.0, 0.0, 1.0, 1.0, // 4 blue
 ]);

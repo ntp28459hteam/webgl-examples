@@ -85,7 +85,7 @@ bool intersectionPlane(
     return (t > 0.0) && (t < tm);
 }
 
-// sphere intersection
+
 bool intersectionSphere(
     const in vec4  sphere
 ,   const in vec3  origin
@@ -93,20 +93,17 @@ bool intersectionSphere(
 ,   const in float tm
 ,   out float t)
 {
-    bool  r = false;
-    vec3  d = origin - sphere.xyz;  // distance
-
-    float b = dot(ray, d);
-    float c = dot(d, d) - sphere.w * sphere.w;
-
-    t = b * b - c;
-
-    if(t > 0.0)
-    {
-        t = -b - sqrt(t);
-        r = (t > 0.0) && (t < tm);
+    float radius = sphere.w;
+    vec3 center = sphere.xyz; 
+    vec3 rayOriginToSphereCenter = origin - center;
+    float dist = length(rayOriginToSphereCenter);
+    float dot_term = dot(ray, rayOriginToSphereCenter);
+    float someVar = dot_term * dot_term - dist * dist + radius * radius;
+    if (someVar <= 0.0) { // no intersection
+        return false;
     }
-    return r;
+    t = -dot_term - sqrt(someVar);
+    return t < tm && t > EPSILON;
 }
 
 // intersection with scene geometry
@@ -181,23 +178,27 @@ float shadow(
 		if(intersectionTriangle( tv, origin, ray, tm, t))
 			return 0.0;
 	}
+
+    vec3 sphereCenter = vec3(0.7, 0.7, 0.7);
+    if(intersectionSphere(vec4(sphereCenter, 0.2), origin, ray, tm, t))
+        return 0.0;
     
     // light is visible from origin
     dist = distance(origin, pointInLight);
 	return a;
 }
 
-mat3 computeTbn(in vec3 normal, const in vec3 triangle[3], in vec2 uv)
+mat3 computeTbn(in vec3 normal)
 {
     vec3 mathlyCorrectly = normalize(vec3(-1.241284e-02, -7.011432e-01, +2.043006e-01));
     mathlyCorrectly = mix(mathlyCorrectly, normalize(vec3(+2.019038e-01, +9.717299e-01, +1.223763e-01)), step(0.0, abs(dot(mathlyCorrectly, normal))));
     mat3 tangentspace;
-    vec3 e0 = cross(mathlyCorrectly, normal); // triangle[1] - triangle[0];
-	vec3 e1 = cross(e0, normal); // triangle[2] - triangle[0];
+    vec3 e0 = cross(mathlyCorrectly, normal);
+	vec3 e1 = cross(e0, normal);
 
-    tangentspace[0] = e0; //normalize(e0);
-    tangentspace[1] = normal; // normalize(cross(tangentspace[0], normalize(e1)));
-    tangentspace[2] = e1; //normalize(cross(tangentspace[1], tangentspace[0]));
+    tangentspace[0] = e0; 
+    tangentspace[1] = normal; 
+    tangentspace[2] = e1;
 
     return tangentspace;
 }
@@ -252,30 +253,40 @@ void main()
     mat3 tangentspace;
     vec3 rSphere;
     
-
 	float t = INFINITY;
     float alpha = 0.0;
     float attenuationSum = 0.0;
-    int bounces = 8;
+    int bounces = 5;
     float gamma = 1.0;
 
+        vec3 n;
 	for(int bounce = 0; bounce < bounces; ++bounce)
 	{
         // triangle data
         vec3 triangle[3];
         int colorIndex;
+
   		t = intersection(origin, ray, triangle, colorIndex); // compute t from objects
 
-		// TODO: break on no intersection, with correct path color weight?
-		if(t == INFINITY)
-			break;
+        float dist;
+        vec3 sphereCenter = vec3(0.7, 0.7, 0.7);
+        if(intersectionSphere(vec4(sphereCenter, 0.2), origin, ray, t, dist))
+        {
+            colorIndex = 4;
+            origin = dist*ray + origin;
+            n = normalize(origin - sphereCenter);
+        }
+        else
+        { 
+            if(t == INFINITY)
+                break; // TODO: break on no intersection, with correct path color weight?
 
+            origin = origin + ray * t;
+            n = normal(triangle);
+        }
+
+        tangentspace = computeTbn(n);
         alpha = 1.0;
-
-		origin = origin + ray * t;
-
-		vec3 n = normal(triangle);
-        tangentspace = computeTbn(n, triangle, v_uv);
 
   		vec3 color = texelFetch(u_colors, ivec2(colorIndex, 0), 0).xyz; // compute material color from hit
         float distToLight = 1.0;
@@ -287,13 +298,13 @@ void main()
         attenuationSum += attenuation;
   		maskColor *= color;
   		pathColor += maskColor * lighting * attenuation;
-        lastColor = color * lighting;
 
         rSphere = randomPointOnHemisphere(fragID + bounce, hspheresize);
 
         // ray = reflect(ray, n);
         ray = tangentspace * rSphere; // compute next ray
-	}
+    }
 
     fragColor = vec4(pow(pathColor, vec3(1.0 / gamma)), alpha);
+    // fragColor = vec4(n, 1.0);
 }
