@@ -12,14 +12,13 @@ precision lowp float;
 
 
 uniform samplerCube u_background;
-uniform vec3 u_eye;
 
-varying vec2 v_uv;
-varying vec4 v_ray;
+varying vec3 v_ray;
+
 
 void main(void)
 {
-    vec3 stu = normalize(v_ray.xyz - u_eye);
+    vec3 stu = normalize(v_ray);
 
 #if __VERSION__ == 100
     vec3 color = textureCube(u_background, stu).rgb;

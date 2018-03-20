@@ -53,7 +53,7 @@ export class SplitRenderer extends Renderer {
             const speed = 0.002;
             const angle = (window.performance.now() * speed) % 360;
             const radians = angle * Math.PI / 180.0;
-            this._camera.center = vec3.fromValues(Math.sin(radians), 0.0, Math.cos(radians));
+            this._camera.eye = vec3.fromValues(4 * Math.sin(radians), 0.0, 4 * Math.cos(radians));
         }
 
         // resize
@@ -189,9 +189,9 @@ export class SplitRenderer extends Renderer {
 
         // init camera
         this._camera = new Camera();
-        this._camera.center = vec3.fromValues(0.0, 0.0, 1.0);
+        this._camera.center = vec3.fromValues(0.0, 0.0, 0.0);
         this._camera.up = vec3.fromValues(0.0, 1.0, 0.0);
-        this._camera.eye = vec3.fromValues(0.0, 0.0, 0.0);
+        this._camera.eye = vec3.fromValues(4.0, 0.0, 0.0);
         this._camera.near = 0.1;
         this._camera.far = 8.0;
 
