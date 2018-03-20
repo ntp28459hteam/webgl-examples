@@ -20,8 +20,8 @@ const _gUp = vec3.fromValues(
     +0.000000, +1.000000, +0.000000);
 
 // corners of axis aligned light cuboid
-const light0 = vec3.fromValues(-0.233813, +1 - 2e-4, -0.188126);
-const light1 = vec3.fromValues(+0.233813, +1 - 2e-4, +0.187411);
+const light0 = vec3.fromValues(-0.233813, +1 - 2e-2, -0.188126);
+const light1 = vec3.fromValues(+0.233813, +1 - 2e-1, +0.187411);
 
 
 export class CornellRenderer extends Renderer {
