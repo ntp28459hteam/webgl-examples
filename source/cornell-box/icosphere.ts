@@ -8,7 +8,7 @@ import { auxiliaries } from 'webgl-operate';
 export function pointsOnSphere(minN: number): Array<vec3> {
 
     // random directions in tangent space
-    const donkey = new Array<vec3>(4096);
+    const donkey = new Array<vec3>(2048);
 
     for (let i = 0; i < donkey.length; ++i) {
         const bound = 1.0 - 1e-4;
