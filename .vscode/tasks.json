@@ -32,24 +32,17 @@
             ]
         },
         {
-            "taskName": "website",
-            "args": [
-                "run-script",
-                "website"
-            ]
-        },
-        {
-            "taskName": "website (watch)",
-            "args": [
-                "run-script",
-                "website-watch"
-            ]
-        },
-        {
             "taskName": "server",
             "args": [
                 "run-script",
                 "server"
+            ]
+        },
+        {
+            "taskName": "server-watch",
+            "args": [
+                "run-script",
+                "server-watch"
             ]
         },
         {

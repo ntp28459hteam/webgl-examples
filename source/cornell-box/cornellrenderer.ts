@@ -17,9 +17,9 @@ import { TrackballNavigation } from './trackballnavigation';
 
 // camera constants
 const _gEye = vec3.fromValues(
-    +0.000000, -0.005102, -3.861230);
+    +0.000000, -0.000000, -3.861230);
 const _gCenter = vec3.fromValues(
-    +0.000000, -0.000000, +0.000000);
+    +0.000000, +0.000000, +0.000000);
 const _gUp = vec3.fromValues(
     +0.000000, +1.000000, +0.000000);
 
@@ -184,7 +184,7 @@ export class CornellRenderer extends Renderer {
 
         // Initialize navigation
         this._navigation = new TrackballNavigation(callback, mouseEventProvider);
-        this._navigation.initialize(this._camera);
+        this._navigation.camera = this._camera;
 
 
         // program

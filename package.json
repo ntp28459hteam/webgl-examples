@@ -21,6 +21,7 @@
     ],
     "devDependencies": {
         "@types/gl-matrix": "~2.3.2",
+        "concurrently": "~3.5.1",
         "gl-matrix": "~2.3.2",
         "glob": "~7.1.2",
         "http-server": "~0.11.1",
@@ -42,13 +43,12 @@
         "webgl-operate": "~0.2.0"
     },
     "scripts": {
-        "build": "webpack",
-        "build-watch": "webpack --watch",
+        "build": "concurrently \"webpack\" \"node pugconfig.js\"",
+        "build-watch": "concurrently \"webpack --watch\" \"node pugconfig.js --watch\"",
         "check": "tslint --project tsconfig.json --force --format stylish --config tslint.json",
         "cleanup": "rimraf ./dist",
-        "website": "node pugconfig.js",
-        "website-watch": "node pugconfig.js --watch",
-        "server": "http-server ./dist -a localhost -p 4000"
+        "server": "http-server ./dist -a localhost -p 4000",
+        "server-watch": "concurrently \"webpack --watch\" \"node pugconfig.js --watch\" \"http-server ./dist -a localhost -p 4000\""
     },
     "keywords": [
         "webgl",
