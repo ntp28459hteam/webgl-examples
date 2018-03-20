@@ -106,7 +106,7 @@ const vec3 LIGHT_COLOR = vec3(1.0, 10.76 / 16.86, 3.7 / 16.86);
 const float EPSILON  = 1e-6;
 const float INFINITY = 1e+4;
 
-const int BOUNCES = 3;
+const int BOUNCES = 6;
 const float EXPOSURE = 5.2;
 const float GAMMA = 2.1;
 
@@ -178,7 +178,8 @@ float intersection(
     const in vec3 origin
 ,   const in vec3 ray
 ,   out vec3 normal
-,   out vec3 color)
+,   out vec3 color
+,   out bool reflecting)
 {
     float t_min = INFINITY;
     float t = INFINITY;
@@ -201,6 +202,7 @@ float intersection(
             ));
 			colorIndex = indices[i*4+3];
 			t_min = t;
+            reflecting = colorIndex == 3;
 		}
 	}
 
@@ -211,6 +213,7 @@ float intersection(
         normal = normalize(intersectionPoint - SPHERE.xyz);
         colorIndex = 4;
         t_min = t;
+        reflecting = true;
     }
 
     color[0] = colors[colorIndex * 3 + 0];
@@ -241,8 +244,8 @@ float shadow(
 	if(a < EPSILON)
 	 	return 0.0;
 
-    vec3 v1,v2; // unused
-    float dist = intersection(origin, ray_direction, v1, v2);
+    vec3 v1,v2; bool r; // unused
+    float dist = intersection(origin, ray_direction, v1, v2, r);
     if(EPSILON < dist && dist <= distToLight)
         return 0.0;
         
@@ -301,14 +304,18 @@ void main()
         // check intersection with scene geometry
         vec3 normal;
         vec3 color;
-        float dist = intersection(ray_origin, ray_direction, normal, color); 
+        bool reflecting;
+        float dist = intersection(ray_origin, ray_direction, normal, color, reflecting); 
 
         if(dist == INFINITY)
             break; // TODO: break on no intersection, with correct path color weight?
 
         // update ray for next bounce
         ray_origin = ray_origin + ray_direction * dist;
-        // ray = reflect(ray, n);
+        if(reflecting){
+            ray_direction = reflect(ray_direction, normal);
+            continue;
+        }
         ray_direction = computeTbn(normal) * randomPointOnHemisphere(fragID + bounce);
 
         // compute lighting and color
