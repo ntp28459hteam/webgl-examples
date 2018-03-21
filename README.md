@@ -14,6 +14,7 @@ In order to setup a new example, let's say `new-renderer`, the following steps a
 * Add and adjust the associated website, e.g., by copying and renaming <br> `website/test-renderer.pug` to `website/new-renderer.pug`.
 * Finally, add an entry to `examples.json` in the root directoy, e.g., `new-renderer`.
 
-Running the `build` and subsequently the `website` tasks should now result in a `dist/new-renderer.js` and `dist/new-renderer.html`.
+Running `build` will transpile all sources and example websites to the `./build` directory. The new renderer should result in a `./build/new-renderer.js` and `./build/new-renderer.html`.
+Running `server` or `server-watch` enables `localhost:4000/new-renderer.html` to be accessed and debugged.
 
 Please note that we try to reduce these steps in the near future, e.g., by providing a script for these steps.

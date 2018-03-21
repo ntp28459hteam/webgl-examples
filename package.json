@@ -43,12 +43,11 @@
         "webgl-operate": "~0.2.0"
     },
     "scripts": {
-        "build": "concurrently \"webpack\" \"node pugconfig.js\"",
-        "build-watch": "concurrently \"webpack --watch\" \"node pugconfig.js --watch\"",
+        "build": "webpack && node pugconfig.js",
         "check": "tslint --project tsconfig.json --force --format stylish --config tslint.json",
-        "cleanup": "rimraf ./dist",
-        "server": "http-server ./dist -a localhost -p 4000",
-        "server-watch": "concurrently \"webpack --watch\" \"node pugconfig.js --watch\" \"http-server ./dist -a localhost -p 4000\""
+        "cleanup": "rimraf ./build",
+        "server": "http-server ./build -a localhost -p 4000",
+        "server-watch": "concurrently \"webpack --watch\" \"node pugconfig.js --watch\" \"npm run-script server\""
     },
     "keywords": [
         "webgl",

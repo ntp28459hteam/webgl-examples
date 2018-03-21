@@ -9,7 +9,7 @@ module.exports = {
     devtool: 'source-map',
     entry: {
         'test-renderer': ['require.ts', 'test-renderer/example.ts'],
-        'camera-navigation': ['require.ts', 'camera-navigation/example.ts'],  
+        'camera-navigation': ['require.ts', 'camera-navigation/example.ts'],
         'cornell-box': ['require.ts', 'cornell-box/example.ts'],
         'sky-triangle': ['require.ts', 'sky-triangle/example.ts'],
     },
@@ -17,7 +17,7 @@ module.exports = {
         'webgl-operate': 'gloperate'
     },
     output: {
-        path: __dirname + '/dist',
+        path: __dirname + '/build',
         filename: '[name].js',
         libraryTarget: 'umd',
         umdNamedDefine: true

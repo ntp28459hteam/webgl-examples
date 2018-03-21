@@ -11,7 +11,7 @@ const glob = require("glob");
 const path = require('path');
 const pug = require('pug');
 
-const distDir = './dist';
+const distDir = './build';
 const websiteDir = './website';
 
 const assets = [
@@ -27,6 +27,12 @@ const examples = require('./examples.json').examples;
 
 var build_pending = false;
 function build() {
+
+    try {
+        fs.mkdirSync(distDir)
+    } catch (err) {
+        if (err.code !== 'EEXIST') throw err
+    }
 
     assets.forEach((asset) => copy(asset[0], asset[1], asset[2], asset[3]));
 

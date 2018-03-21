@@ -1,7 +1,6 @@
 .nyc_output
 .git
 node_modules/
-dist/
-lib/
+build/
 .DS_Store
 package-lock.json
