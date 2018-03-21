@@ -16,5 +16,5 @@ varying vec3 v_vertex;
 
 void main(void)
 {
-    fragColor = vec4(v_vertex, 1.0);
+    fragColor = vec4(v_vertex * 0.5 + 0.5, 1.0);
 }

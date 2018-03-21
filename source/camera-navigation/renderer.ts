@@ -76,7 +76,7 @@ export class CameraNavigationRenderer extends Renderer {
     }
 
     protected onFrame(frameNumber: number): void {
-        const gl = this.context.gl;
+        const gl = this._context.gl;
 
         // Bind FBO
         this._intermediateFBO.bind();
@@ -131,10 +131,10 @@ export class CameraNavigationRenderer extends Renderer {
     }
 
     protected loadImages(): void {
-        const gl = this.context.gl;
+        const gl = this._context.gl;
 
-        this._cubeMap = new TextureCube(this.context);
-        const internalFormatAndType = Wizard.queryInternalTextureFormat(this.context, gl.RGB, 'byte');
+        this._cubeMap = new TextureCube(this._context);
+        const internalFormatAndType = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'byte');
         this._cubeMap.initialize(1, 1, internalFormatAndType[0], gl.RGB, internalFormatAndType[1]);
         this._cubeMapChanged = false;
 
@@ -172,28 +172,24 @@ export class CameraNavigationRenderer extends Renderer {
     }
 
     protected onInitialize(context: Context, callback: Invalidate, mouseEventProvider: MouseEventProvider): boolean {
-        if (!super.initialize(context, callback, mouseEventProvider)) {
-            return false;
-        }
-
-        const gl = this.context.gl;
-        const gl2facade = this.context.gl2facade;
+        const gl = this._context.gl;
+        const gl2facade = this._context.gl2facade;
 
         // Load images
         this.loadImages();
 
         // Initialize program
-        const vert = new Shader(this.context, gl.VERTEX_SHADER, 'cube.vert');
+        const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cube.vert');
         vert.initialize(require('./cube.vert'));
-        const frag = new Shader(this.context, gl.FRAGMENT_SHADER, 'cube.frag');
+        const frag = new Shader(this._context, gl.FRAGMENT_SHADER, 'cube.frag');
         frag.initialize(require('./cube.frag'));
-        this._cubeProgram = new Program(this.context);
+        this._cubeProgram = new Program(this._context);
         this._cubeProgram.initialize([vert, frag]);
         this._uViewProjection = this._cubeProgram.uniform('u_viewProjection');
         this._uModel = this._cubeProgram.uniform('u_model');
 
         // Initialize cube geometry
-        this._cube = new Cube(this.context, 'cube');
+        this._cube = new Cube(this._context, 'cube');
         this._cube.initialize(this._aCubeVertex);
         this._aCubeVertex = this._cubeProgram.attribute('a_vertex', 0);
 
@@ -229,17 +225,17 @@ export class CameraNavigationRenderer extends Renderer {
         this._navigation.initialize(this._camera);
 
         // Initialize FBO & BlitPass
-        this._defaultFBO = new DefaultFramebuffer(this.context, 'DefaultFBO');
+        this._defaultFBO = new DefaultFramebuffer(this._context, 'DefaultFBO');
         this._defaultFBO.initialize();
-        this._colorRenderTexture = new Texture2(this.context, 'ColorRenderTexture');
+        this._colorRenderTexture = new Texture2(this._context, 'ColorRenderTexture');
         this._colorRenderTexture.initialize(480, 270,
-            this.context.isWebGL2 ? gl.RGBA8 : gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE);
-        this._depthRenderbuffer = new Renderbuffer(this.context, 'DepthRenderbuffer');
+            this._context.isWebGL2 ? gl.RGBA8 : gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE);
+        this._depthRenderbuffer = new Renderbuffer(this._context, 'DepthRenderbuffer');
         this._depthRenderbuffer.initialize(480, 270, gl.DEPTH_COMPONENT16);
-        this._intermediateFBO = new Framebuffer(this.context, 'IntermediateFBO');
+        this._intermediateFBO = new Framebuffer(this._context, 'IntermediateFBO');
         this._intermediateFBO.initialize([[gl2facade.COLOR_ATTACHMENT0, this._colorRenderTexture]
             , [gl.DEPTH_ATTACHMENT, this._depthRenderbuffer]]);
-        this._blit = new BlitPass(this.context);
+        this._blit = new BlitPass(this._context);
         this._blit.initialize();
         this._blit.framebuffer = this._intermediateFBO;
         this._blit.readBuffer = gl2facade.COLOR_ATTACHMENT0;
@@ -248,14 +244,12 @@ export class CameraNavigationRenderer extends Renderer {
 
         // Initialize skyBox
         this._skyBox = new Skybox();
-        this._skyBox.initialize(this.context, this._camera, this._cubeMap);
+        this._skyBox.initialize(this._context, this._camera, this._cubeMap);
 
         return true;
     }
 
     protected onUninitialize(): void {
-        super.uninitialize();
-
         this._cube.uninitialize();
 
         this._intermediateFBO.uninitialize();
