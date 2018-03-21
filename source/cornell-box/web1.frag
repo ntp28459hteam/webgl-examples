@@ -244,6 +244,9 @@ void main()
         ray_origin = ray_origin + ray_direction * dist;
         if(reflecting){
             ray_direction = reflect(ray_direction, normal);
+            if(bounce == 0) {
+                alpha = 1.0;
+            }
             continue;
         }
         ray_direction = computeTbn(normal) * randomPointOnHemisphere(fragID + bounce);
