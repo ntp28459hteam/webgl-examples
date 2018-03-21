@@ -1,0 +1,46 @@
+extends partials/site.pug
+
+block vars
+  - var navLinks = []
+  - navLinks.push({ href: 'https://github.com/cginternals/website-init', text: 'GitHub' })
+  - navLinks.push({ href: 'https://webgl-operate.org', text: 'Example' })
+
+
+block head
+  // link(rel = 'stylesheet' href = 'css/template.css')
+  // script(src = 'js/tempalte.js')
+
+
+block header
+  section.container
+    header.jumbatron
+      img(src = 'img/webgl-operate-logo.svg' alt = 'webgl-operate logo').mb-2.w-50.d-none.d-md-block
+      img(src = 'img/webgl-operate-logo.svg' alt = 'webgl-operate logo').mb-2.d-block.d-md-none
+      p.lead webgl-operate (or gloperate for WebGL) is a TypeScript based WebGL rendering framework.
+
+
+block content
+
+  section.container
+    div.row
+      div.col
+        p.mb-4 webgl-operate enables hardware-accelerated 2D and 3D rendering on html canvases. It is use-case agnostic, i.e., it does not assume a specific type of rendering but facilitates arbitrary rendering approaches instead (e.g., procedural rendering, multi-frame sampling, raytracing, progressive pathtracing).
+
+        include partials/code.pug
+        +code('jsdelivr', '<script src="https://cdn.jsdelivr.net/npm/webgl-operate@0.2.0/dist/webgl-operate.min.js"></script>'
+          , 'You can integrate webgl-operate as bundled JavaScript in your HTML:')
+        +code('npm', 'npm install --save-dev webgl-operate'
+          , 'Or you can use webgl-operate as JavaScript or TypeScript library (types included) via npm:')
+
+
+  include partials/thumbnail.pug
+  section.container
+    div.row
+      div.col
+        h3 Examples
+        hr
+
+        div.card-columns
+
+          each example, index in examples
+            +thumbnail(example.target, example.title, example.author, example.caption)

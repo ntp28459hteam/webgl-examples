@@ -9,6 +9,7 @@ function onload() {
     const canvas = new Canvas('example-canvas');
     const context = canvas.context;
     const renderer = new CornellRenderer();
+
     canvas.renderer = renderer;
     canvas.framePrecision = `float`;
     canvas.frameScale = [0.5, 0.5];

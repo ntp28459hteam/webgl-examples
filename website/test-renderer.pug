@@ -1,17 +1,13 @@
-extends partial/example.pug
-
-block vars 
-  - var title   = 'Test Renderer'
-  - var author  = 'cgcostume'
-  - var caption = 'Simple rendering showing a pixel-width outline using OES_standard_derivatives.'
-  - var source  = 'test-renderer.js'
+extends example.pug
 
 
-include partial/code.pug
+block canvas
 
-block breakdown 
-  section.container
-    h4 Example Breadown
-    p This should describe the example in much more detail, e.g., refering to relevant code snippets and resources
-  
-    +code('example-code', 'const example.code.for.breakdown = here;', 'Example code for source break down:')
+  canvas(id = 'example-canvas', data-backend = 'auto').img-fluid.w-100
+
+
+block breakdown
+  p This should describe the example in much more detail, e.g., refering to relevant code snippets and resources
+
+  include partials/code.pug
+  +code('example-code', 'const example.code.for.breakdown = here;', 'Example code for source break down:')

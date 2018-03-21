@@ -90,7 +90,6 @@ ul.features li:last-child:after {
     border-radius: .25rem;
 }
 
-
 canvas:fullscreen  {
     width: 100%!important;
     height: 100%!important;

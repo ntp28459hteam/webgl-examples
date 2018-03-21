@@ -44,6 +44,7 @@
     },
     "scripts": {
         "build": "webpack && node pugconfig.js",
+        "website": "node pugconfig.js",
         "check": "tslint --project tsconfig.json --force --format stylish --config tslint.json",
         "cleanup": "rimraf ./build",
         "server": "http-server ./build -a localhost -p 4000",

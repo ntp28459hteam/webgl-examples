@@ -1,22 +1,16 @@
 
-import * as gloperate from 'webgl-operate';
+import { Canvas, Color } from 'webgl-operate';
 
 import { CameraNavigationRenderer } from './renderer';
 
 
 function onload() {
-    const canvas = new gloperate.Canvas('example-canvas');
-    canvas.clearColor.fromHex('f8f9fa');
-
+    const canvas = new Canvas('example-canvas');
     const context = canvas.context;
+    canvas.clearColor.fromHex('f8f9fa');
 
     const renderer = new CameraNavigationRenderer();
     canvas.renderer = renderer;
-
-    /*
-    canvas.element.addEventListener('click', function () { gloperate.viewer.Fullscreen.toggle(canvas.element); });
-    canvas.element.addEventListener('touchstart', function () { gloperate.viewer.Fullscreen.toggle(canvas.element); });
-    */
 
     // export variables
     (window as any)['canvas'] = canvas;
