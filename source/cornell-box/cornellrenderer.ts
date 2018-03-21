@@ -1,7 +1,7 @@
 
 import {
     AccumulatePass, AntiAliasingKernel, auxiliaries, BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer,
-    Invalidate, MouseEventProvider, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2,
+    Invalidate, MouseEventProvider, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2, Wizard,
 } from 'webgl-operate';
 
 import { vec3, vec4 } from 'gl-matrix';
@@ -9,6 +9,8 @@ import { vec3, vec4 } from 'gl-matrix';
 // helper functions
 import { pointsInLight, pointsOnSphere } from './helper';
 import { TrackballNavigation } from './trackballnavigation';
+
+import { colors, indices, vertices } from './web1_scene';
 
 
 // camera constants
@@ -58,6 +60,10 @@ export class CornellRenderer extends Renderer {
     protected _depthRenderbuffer: Renderbuffer;
     protected _intermediateFBO: Framebuffer;
 
+    // for webgl1
+    protected _verticesImage: Texture2;
+    protected _indicesImage: Texture2;
+    protected _colorsImage: Texture2;
 
     protected onUpdate(): boolean {
 
@@ -137,6 +143,13 @@ export class CornellRenderer extends Renderer {
         this._hsphereImage.bind(gl.TEXTURE0);
         this._lightsImage.bind(gl.TEXTURE1);
 
+        // webgl1
+        if (this._context.isWebGL1) {
+            this._verticesImage.bind(gl.TEXTURE2);
+            this._indicesImage.bind(gl.TEXTURE3);
+            this._colorsImage.bind(gl.TEXTURE4);
+        }
+
         // render geometry
         this._ndcTriangle.bind();
         this._ndcTriangle.draw();
@@ -183,7 +196,7 @@ export class CornellRenderer extends Renderer {
         const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cornell.vert');
         vert.initialize(require('./cornell.vert'));
         const frag = new Shader(this._context, gl.FRAGMENT_SHADER, 'cornell.frag');
-        frag.initialize(require('./cornell.frag'));
+        frag.initialize(require(this._context.isWebGL2 ? './cornell.frag' : './web1.frag'));
         this._program = new Program(this._context);
         this._program.initialize([vert, frag]);
 
@@ -205,6 +218,7 @@ export class CornellRenderer extends Renderer {
         this._ndcTriangle.initialize(aVertex);
 
         // CREATE HEMISPHERE PATH SAMPLES
+        const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'float');
         const points = pointsOnSphere(2048);
         const samplerSize = Math.floor(Math.sqrt(points.length));
         const spherePoints = new Float32Array(samplerSize * samplerSize * 3);
@@ -214,7 +228,8 @@ export class CornellRenderer extends Renderer {
             spherePoints[3 * i + 2] = points[i][2];
         }
         this._hsphereImage = new Texture2(this._context, 'hsphereImage');
-        this._hsphereImage.initialize(samplerSize, samplerSize, gl.RGB32F, gl.RGB, gl.FLOAT);
+        this._hsphereImage.initialize(samplerSize, samplerSize,
+            fnt[0], gl.RGB, fnt[1]);
         this._hsphereImage.data(spherePoints);
         this._hsphereImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
         this._hsphereImage.filter(gl.NEAREST, gl.NEAREST);
@@ -229,10 +244,44 @@ export class CornellRenderer extends Renderer {
             lights2[i2++] = light[2];
         }
         this._lightsImage = new Texture2(this._context, 'lightsImage');
-        this._lightsImage.initialize(32, 32, gl.RGB32F, gl.RGB, gl.FLOAT);
+        this._lightsImage.initialize(32, 32,
+            fnt[0], gl.RGB, fnt[1]);
         this._lightsImage.data(lights2);
         this._lightsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
         this._lightsImage.filter(gl.NEAREST, gl.NEAREST);
+
+
+        // scene textures for webgl1
+        if (this._context.isWebGL1) {
+            this._program.bind();
+            gl.uniform1i(this._program.uniform('u_vertices'), 2);
+            gl.uniform1i(this._program.uniform('u_indices'), 3);
+            gl.uniform1i(this._program.uniform('u_colors'), 4);
+            this._program.unbind();
+
+            this._verticesImage = new Texture2(this._context, 'verticesImage');
+            this._verticesImage.initialize(vertices.length / 3, 1,
+                fnt[0], gl.RGB, fnt[1]); // height 1
+            this._verticesImage.data(vertices);
+            this._verticesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
+            this._verticesImage.filter(gl.NEAREST, gl.NEAREST);
+
+            const fnt2 = Wizard.queryInternalTextureFormat(this._context, gl.RGBA, 'float');
+            this._indicesImage = new Texture2(this._context, 'indicesImage');
+            this._indicesImage.initialize(indices.length / 4, 1,
+                fnt2[0], gl.RGBA, fnt2[1]); // height 1
+            this._indicesImage.data(indices);
+            this._indicesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
+            this._indicesImage.filter(gl.NEAREST, gl.NEAREST);
+
+            this._colorsImage = new Texture2(this._context, 'colorsImage');
+            this._colorsImage.initialize(colors.length / 3, 1,
+                fnt[0], gl.RGB, fnt[1]); // height 1
+            this._colorsImage.data(colors);
+            this._colorsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
+            this._colorsImage.filter(gl.NEAREST, gl.NEAREST);
+        }
+
 
         // ndc offset for anti-aliasing
         this._uNdcOffset = this._program.uniform('u_ndcOffset');
@@ -266,6 +315,12 @@ export class CornellRenderer extends Renderer {
 
         this._hsphereImage.uninitialize();
         this._lightsImage.uninitialize();
+
+        if (this._context.isWebGL1) {
+            this._verticesImage.uninitialize();
+            this._indicesImage.uninitialize();
+            this._colorsImage.uninitialize();
+        }
 
         this._intermediateFBO.uninitialize();
         this._defaultFBO.uninitialize();
