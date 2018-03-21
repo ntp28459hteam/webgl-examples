@@ -12,7 +12,7 @@ In order to setup a new example, let's say `new-renderer`, the following steps a
 * Adjust the the `source/new-renderer/example.ts` according to your needs.
 * Extend the entry property in `webpack.config.js`, e.g., by adding <br> `new-renderer': ['require.ts', 'new-renderer/example.ts']`.
 * Add and adjust the associated website, e.g., by copying and renaming <br> `website/test-renderer.pug` to `website/new-renderer.pug`.
-* Finally, add an entry to `examples.json` in the root directoy, e.g., `new-renderer`.
+* Finally, add an entry to `website/examples.json` in the root directoy, e.g., `new-renderer`.
 
 Running `build` will transpile all sources and example websites to the `./build` directory. The new renderer should result in a `./build/new-renderer.js` and `./build/new-renderer.html`.
 Running `server` or `server-watch` enables `localhost:4000/new-renderer.html` to be accessed and debugged.
