@@ -2,19 +2,29 @@
     {
         "target": "cornell-box",
         "title": "Cornell Box",
-        "author": "cgcostume, chistopher",
+        "authors": [
+            "cgcostume",
+            "chistopher"
+        ],
         "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
     },
     {
         "target": "sky-triangle",
         "title": "Sky Triangle",
-        "author": "carolinfiedler, chistopher, and maikz",
+        "authors": [
+            "carolinfiedler",
+            "chistopher",
+            "maikz"
+        ],
         "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
     },
     {
         "target": "camera-navigation",
         "title": "Camera Navigation",
-        "author": "cgcostume, sbusch",
+        "authors": [
+            "cgcostume",
+            "sbusch"
+        ],
         "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
     }
 ]

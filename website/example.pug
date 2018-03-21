@@ -9,11 +9,13 @@ html(lang = 'en')
   body.bg-light
   
     include partials/navbar.pug
-
+   
+    include partials/authors.pug
     section.container.mt-5
       block canvas
       p.float-left.text-left #{example.title} using #[a(href = 'https://github.com/cginternals/webgl-operate') webgl-operate].
-      p.float-none.text-right by #{example.author}.
+      p.float-none.text-right by 
+        +authors(example.authors)
 
 
     section.container.mt-5
