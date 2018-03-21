@@ -31,7 +31,7 @@
         "ts-loader": "~3.5.0",
         "tslint": "~5.9.1",
         "typescript": "~2.7.2",
-        "webgl-operate": "file:../_webgl-operate/webgl-operate-0.2.0.tgz",
+        "webgl-operate": "~0.2.1",
         "webpack": "~3.11.0",
         "webpack-glsl-loader": "~1.0.1",
         "webpack-sources": "~1.1.0"
