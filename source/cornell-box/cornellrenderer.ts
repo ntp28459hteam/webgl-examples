@@ -10,7 +10,7 @@ import { vec3, vec4 } from 'gl-matrix';
 import { pointsInLight, pointsOnSphere } from './helper';
 import { TrackballNavigation } from './trackballnavigation';
 
-import { colors, indices, vertices } from './web1_scene';
+import { colors, indices, vertices } from './cornellbox';
 
 
 // camera constants
@@ -196,7 +196,7 @@ export class CornellRenderer extends Renderer {
         const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cornell.vert');
         vert.initialize(require('./cornell.vert'));
         const frag = new Shader(this._context, gl.FRAGMENT_SHADER, 'cornell.frag');
-        frag.initialize(require(this._context.isWebGL2 ? './cornell.frag' : './web1.frag'));
+        frag.initialize(require(this._context.isWebGL2 ? './cornell2.frag' : './cornell1.frag'));
         this._program = new Program(this._context);
         this._program.initialize([vert, frag]);
 
