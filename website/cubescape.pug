@@ -1,0 +1,13 @@
+extends example.pug
+
+
+block canvas
+
+  canvas(id = 'example-canvas', data-backend = 'auto').img-fluid.w-100
+
+
+block breakdown
+  p This should describe the example in much more detail, e.g., refering to relevant code snippets and resources
+
+  include partials/code.pug
+  +code('example-code', 'const example.code.for.breakdown = here;', 'Example code for source break down:')
