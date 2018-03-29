@@ -18,8 +18,8 @@ uniform float u_time;
 uniform int u_numcubes;
 
 varying float v_heightAddition;
-varying float v_vertexHeight;
-varying vec3 v_position;
+varying vec3 v_cube;
+varying vec3 v_global;
 
 
 void main()
@@ -36,7 +36,7 @@ void main()
 	    vertex.y += cubeHeight * floor(heightAddition / cubeHeight);
 
 	v_heightAddition = heightAddition;
-	v_vertexHeight = vertex.y;
-	v_position = a_vertex;
+	v_cube = a_vertex;
+	v_global = vertex;
 	gl_Position = u_viewProjection * vec4(vertex, 1.0); 
 }
