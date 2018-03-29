@@ -25,21 +25,19 @@
         "gl-matrix": "~2.3.2",
         "glob": "~7.1.2",
         "http-server": "~0.11.1",
-        "pug": "~2.0.0-rc.4",
+        "pug": "~2.0.3",
         "rimraf": "~2.6.2",
-        "source-map-support": "~0.5.3",
+        "source-map-support": "~0.5.4",
         "ts-loader": "~3.5.0",
         "tslint": "~5.9.1",
         "typescript": "~2.7.2",
-        "webgl-operate": "file:../_webgl-operate/webgl-operate-0.2.0.tgz",
         "webpack": "~3.11.0",
         "webpack-glsl-loader": "~1.0.1",
         "webpack-sources": "~1.1.0"
     },
-    "dependencies": {},
-    "peerDependencies": {
+    "dependencies": {
         "rxjs": "~5.5.6",
-        "webgl-operate": "~0.2.0"
+        "webgl-operate": "~0.2.2"
     },
     "scripts": {
         "build": "webpack && node pugconfig.js",
