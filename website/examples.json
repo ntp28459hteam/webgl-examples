@@ -26,5 +26,14 @@
             "sbusch42"
         ],
         "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
+    },
+    {
+        "target": "cubescape",
+        "title": "Cube aber auch Scape",
+        "authors": [
+            "cgcostume",
+            "chistopher"
+        ],
+        "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
     }
 ]
