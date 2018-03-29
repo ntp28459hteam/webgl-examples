@@ -12,6 +12,7 @@ module.exports = {
         'camera-navigation': ['require.ts', 'camera-navigation/example.ts'],
         'cornell-box': ['require.ts', 'cornell-box/example.ts'],
         'sky-triangle': ['require.ts', 'sky-triangle/example.ts'],
+        'openll-showcase': ['require.ts', 'openll-showcase/example.ts'],
     },
     externals: {
         'webgl-operate': 'gloperate'

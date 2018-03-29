@@ -26,5 +26,15 @@
             "sbusch42"
         ],
         "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
+    },
+    {
+        "target": "openll-showcase",
+        "title": "OpenLL Showcase",
+        "authors": [
+            "anne-gropler",
+            "bwasty",
+            "cgcostume"
+        ],
+        "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
     }
 ]
