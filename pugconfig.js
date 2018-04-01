@@ -7,27 +7,25 @@
 const watch = process.argv.indexOf('--watch') > 1;
 
 const fs = require('fs');
-const glob = require("glob");
 const path = require('path');
-const pug = require('pug');
 const copy = require('./copy.js');
+const pug = require('pug');
 
 
-const buildDir = './build';
 const websiteDir = './website';
-
-
-const assets = [
-    ['./data', buildDir + '/data', ['*'], false],
-    [websiteDir, buildDir, ['css/*.css', 'js/*.js', 'img/*.{svg,png,jpg}', 'fonts/*', '*.{svg,png,ico,xml,json}'], false],
-    ['./node_modules/webgl-operate/dist', buildDir + '/js', ['webgl-operate.{js,js.map}'], true]];
+const distDir = './build';
 
 const examples = require(websiteDir + '/examples.json');
+
+const assets = [
+    ['./data', distDir + '/data', ['*'], [], false],
+    [websiteDir, distDir, ['css/*.css', 'js/*.js', 'img/*.{svg,png,jpg}', 'fonts/*', '*.{svg,png,ico,xml,json}'], [], false],
+    ['./node_modules/webgl-operate/dist', distDir + '/js', ['webgl-operate.{js,js.map}'], [], true]];
 
 
 function render(template, target, object) {
     const src = path.join(websiteDir, template + '.pug');
-    const dst = path.join(buildDir, target + '.html');
+    const dst = path.join(distDir, target + '.html');
     if (!fs.existsSync(src)) {
         console.log('skipped:', target);
         return;
@@ -40,17 +38,12 @@ function render(template, target, object) {
 
 
 var build_pending = false;
+
 function build() {
-
-    try {
-        fs.mkdirSync(buildDir)
-    } catch (err) {
-        if (err.code !== 'EEXIST') throw err
-    }
-
-    assets.forEach((asset) => copy(asset[0], asset[1], asset[2], asset[3]));
+    assets.forEach((asset) => copy(asset[0], asset[1], asset[2], asset[3], asset[4]));
 
     render('index', 'index', { 'examples': examples });
+
     examples.forEach((example) => {
         render(example.target, example.target, { 'example': example });
     });
@@ -66,6 +59,7 @@ if (watch) {
         if (build_pending) {
             return;
         }
+
         build_pending = true;
         setTimeout(build, 100);
     });

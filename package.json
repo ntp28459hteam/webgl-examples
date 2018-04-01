@@ -1,6 +1,6 @@
 {
     "name": "webgl-examples",
-    "version": "0.1.9",
+    "version": "0.2.2",
     "license": "MIT",
     "description": "WebGL examples using TypeScript and webgl-operate.",
     "author": "CG Internals",
