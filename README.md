@@ -15,6 +15,6 @@ In order to setup a new example, let's say `new-renderer`, the following steps a
 * Finally, add an entry to `website/examples.json` in the root directoy, e.g., `new-renderer`.
 
 Running `build` will transpile all sources and example websites to the `./build` directory. The new renderer should result in a `./build/new-renderer.js` and `./build/new-renderer.html`.
-Running `server` or `server-watch` enables `localhost:4000/new-renderer.html` to be accessed and debugged.
+Running `start` or `start-watch` enables `localhost:4000/new-renderer.html` to be accessed and debugged.
 
 Please note that we try to reduce these steps in the near future, e.g., by providing a script for these steps.

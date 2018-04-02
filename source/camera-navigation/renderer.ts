@@ -72,8 +72,7 @@ export class CameraNavigationRenderer extends Renderer {
         return altered;
     }
 
-    protected onPrepare(): void {
-    }
+    protected onPrepare(): void { }
 
     protected onFrame(frameNumber: number): void {
         const gl = this._context.gl;
@@ -130,53 +129,9 @@ export class CameraNavigationRenderer extends Renderer {
         this.invalidate();
     }
 
-    protected loadImages(): void {
-        const gl = this._context.gl;
-
-        this._cubeMap = new TextureCube(this._context);
-        const internalFormatAndType = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'byte');
-        this._cubeMap.initialize(1, 1, internalFormatAndType[0], gl.RGB, internalFormatAndType[1]);
-        this._cubeMapChanged = false;
-
-        const px = new Image();
-        const nx = new Image();
-        const py = new Image();
-        const ny = new Image();
-        const pz = new Image();
-        const nz = new Image();
-
-        px.src = 'data/skybox.px.png';
-        nx.src = 'data/skybox.nx.png';
-        py.src = 'data/skybox.py.png';
-        ny.src = 'data/skybox.ny.png';
-        pz.src = 'data/skybox.pz.png';
-        nz.src = 'data/skybox.nz.png';
-
-        let imagesLoaded = 0;
-        const callback = () => {
-            imagesLoaded++;
-            if (imagesLoaded === 6) {
-                this._cubeMap.resize(px.width, px.height);
-                this._cubeMap.data([px, nx, py, ny, pz, nz]);
-                this._cubeMapChanged = true;
-                this.invalidate();
-            }
-        };
-
-        px.addEventListener('load', callback);
-        nx.addEventListener('load', callback);
-        py.addEventListener('load', callback);
-        ny.addEventListener('load', callback);
-        pz.addEventListener('load', callback);
-        nz.addEventListener('load', callback);
-    }
-
     protected onInitialize(context: Context, callback: Invalidate, mouseEventProvider: MouseEventProvider): boolean {
         const gl = this._context.gl;
         const gl2facade = this._context.gl2facade;
-
-        // Load images
-        this.loadImages();
 
         // Initialize program
         const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cube.vert');
@@ -243,8 +198,19 @@ export class CameraNavigationRenderer extends Renderer {
         this._blit.target = this._defaultFBO;
 
         // Initialize skyBox
+
+        const internalFormatAndType = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'byte');
+        this._cubeMap = new TextureCube(this._context);
+        this._cubeMap.initialize(512, internalFormatAndType[0], gl.RGB, internalFormatAndType[1]);
+
         this._skyBox = new Skybox();
         this._skyBox.initialize(this._context, this._camera, this._cubeMap);
+
+        this._cubeMap.load({
+            positiveX: 'data/skybox.px.png', negativeX: 'data/skybox.nx.png',
+            positiveY: 'data/skybox.py.png', negativeY: 'data/skybox.ny.png',
+            positiveZ: 'data/skybox.pz.png', negativeZ: 'data/skybox.nz.png',
+        }).then(() => this.invalidate(true));
 
         return true;
     }

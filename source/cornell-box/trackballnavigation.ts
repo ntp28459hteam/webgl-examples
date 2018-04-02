@@ -8,7 +8,7 @@ import {
 
 export class TrackballNavigation {
 
-    protected static readonly ROTATE_FACTOR = 0.002;
+    protected static readonly ROTATE_FACTOR = 0.004;
 
 
     /** @see {@link camera} */

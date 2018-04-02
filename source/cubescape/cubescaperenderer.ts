@@ -123,16 +123,13 @@ export class CubescapeRenderer extends Renderer {
         this._terrain.initialize(64, 64, gl.R8, gl.RED, gl.UNSIGNED_BYTE);
         this._terrain.wrap(gl.REPEAT, gl.REPEAT);
         this._terrain.filter(gl.LINEAR, gl.LINEAR);
+        this._terrain.load('data/cubescape-terrain.png');
+
         this._patches = new Texture2(this._context);
         this._patches.initialize(64, 16, gl.RGB32F, gl.RGB, gl.FLOAT);
         this._patches.wrap(gl.REPEAT, gl.REPEAT);
         this._patches.filter(gl.NEAREST, gl.NEAREST);
-        const terrainImage = new Image();
-        const patchesImage = new Image();
-        terrainImage.src = 'data/cubescape-terrain.png';
-        patchesImage.src = 'data/cubescape-patches.png';
-        terrainImage.addEventListener('load', () => { this._terrain.data(terrainImage); });
-        patchesImage.addEventListener('load', () => { this._patches.data(patchesImage); });
+        this._patches.load('data/cubescape-patches.png');
 
         // init program
         const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cube.vert');

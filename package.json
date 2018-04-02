@@ -1,6 +1,6 @@
 {
     "name": "webgl-examples",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "license": "MIT",
     "description": "WebGL examples using TypeScript and webgl-operate.",
     "author": "CG Internals",
@@ -31,21 +31,21 @@
         "ts-loader": "~3.5.0",
         "tslint": "~5.9.1",
         "typescript": "~2.7.2",
+        "webgl-operate": "0.2.3",
         "webpack": "~3.11.0",
         "webpack-glsl-loader": "~1.0.1",
         "webpack-sources": "~1.1.0"
     },
     "dependencies": {
-        "rxjs": "~5.5.6",
-        "webgl-operate": "~0.2.2"
+        "rxjs": "~5.5.6"
     },
     "scripts": {
         "build": "webpack && node pugconfig.js",
         "website": "node pugconfig.js",
         "check": "tslint --project tsconfig.json --force --format stylish --config tslint.json",
         "cleanup": "rimraf ./build",
-        "server": "http-server ./build -a localhost -p 4000",
-        "server-watch": "concurrently \"webpack --watch\" \"node pugconfig.js --watch\" \"npm run-script server\""
+        "start": "http-server ./build -a localhost -p 4000",
+        "start-watch": "concurrently \"webpack --watch\" \"node pugconfig.js --watch\" \"npm run-script start\""
     },
     "keywords": [
         "webgl",

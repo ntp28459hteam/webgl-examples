@@ -125,37 +125,12 @@ export class SplitRenderer extends Renderer {
 
         this._cubeMap = new TextureCube(this._context);
         const internalFormatAndType = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'byte');
-        this._cubeMap.initialize(1, 1, internalFormatAndType[0], gl.RGB, internalFormatAndType[1]);
-
-        const px = new Image();
-        const nx = new Image();
-        const py = new Image();
-        const ny = new Image();
-        const pz = new Image();
-        const nz = new Image();
-
-        px.src = 'data/skybox.px.png';
-        nx.src = 'data/skybox.nx.png';
-        py.src = 'data/skybox.py.png';
-        ny.src = 'data/skybox.ny.png';
-        pz.src = 'data/skybox.pz.png';
-        nz.src = 'data/skybox.nz.png';
-
-        let imagesLoaded = 0;
-        const callback = () => {
-            imagesLoaded++;
-            if (imagesLoaded === 6) {
-                this._cubeMap.resize(px.width, px.height);
-                this._cubeMap.data([px, nx, py, ny, pz, nz]);
-            }
-        };
-
-        px.addEventListener('load', callback);
-        nx.addEventListener('load', callback);
-        py.addEventListener('load', callback);
-        ny.addEventListener('load', callback);
-        pz.addEventListener('load', callback);
-        nz.addEventListener('load', callback);
+        this._cubeMap.initialize(512, internalFormatAndType[0], gl.RGB, internalFormatAndType[1]);
+        this._cubeMap.load({
+            positiveX: 'data/skybox.px.png', negativeX: 'data/skybox.nx.png',
+            positiveY: 'data/skybox.py.png', negativeY: 'data/skybox.ny.png',
+            positiveZ: 'data/skybox.pz.png', negativeZ: 'data/skybox.nz.png',
+        }).then(() => this.invalidate());
     }
 
     protected onInitialize(context: Context, callback: Invalidate, mouseEventProvider: MouseEventProvider): boolean {
