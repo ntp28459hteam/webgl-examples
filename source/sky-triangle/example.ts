@@ -10,7 +10,7 @@ function onload() {
     const canvas = new Canvas('example-canvas');
     const context = canvas.context;
 
-    canvas.clearColor.fromHex('f8f9fa');
+    canvas.clearColor.fromHex('d6d8db');
 
     const renderer = new SplitRenderer();
     canvas.renderer = renderer;

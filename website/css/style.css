@@ -7,7 +7,7 @@ body {
     font-family: 'Source Sans Pro', sans-serif !important;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, a {
     color: #1c75bc;
     font-weight: 300;
 }
@@ -20,11 +20,11 @@ pre, code {
 }
 
 header, footer {
-    margin-top: 6rem;
+    padding-top: 8rem;
 }
 
 section {
-    margin-bottom: 2rem;
+    padding-top: 2rem;
 }
 
 a:hover {
@@ -43,6 +43,31 @@ nav ul#nav.navbar-nav li.nav-item a.nav-link {
     padding-left: 1rem;
     padding-right: 0;
 }
+
+nav .navbar-toggler {
+    border: none;
+    cursor: pointer;
+}
+
+nav .dropdown-menu {
+    right: 0;
+    left: auto;
+}
+
+nav .dropdown-item {
+    color: rgba(255, 255, 255, 0.50);
+}
+
+nav .dropdown-item:hover {
+    color: rgba(255, 255, 255, 0.75);
+    background: none;
+}  
+
+nav .dropdown-item:active {
+    color: rgba(255, 255, 255, 1.00);
+    background: none;
+}
+
 
 ul.features {
     padding-left: 0;
@@ -89,6 +114,12 @@ ul.features li:last-child:after {
     cursor: pointer;
     background-color: transparent;
     border-radius: .25rem;
+}
+
+canvas {
+    border: 1px solid #d6d8db;
+    background: #e2e3e5;
+    margin-top: 6rem;
 }
 
 canvas:fullscreen  {

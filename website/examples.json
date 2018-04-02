@@ -6,7 +6,7 @@
             "cgcostume",
             "chistopher"
         ],
-        "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
+        "caption": "Progressive path tracing of the classic Cornell Box in GLSL for WebGL as well as WebGL2."
     },
     {
         "target": "sky-triangle",
@@ -16,7 +16,7 @@
             "chistopher",
             "maikz"
         ],
-        "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
+        "caption": " quick example text to build on the card title and make up the bulk of the ..."
     },
     {
         "target": "camera-navigation",
@@ -25,7 +25,7 @@
             "cgcostume",
             "sbusch42"
         ],
-        "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
+        "caption": "B Some quick example text to build on the card title and make up the bulk of the ..."
     },
     {
         "target": "openll-showcase",
@@ -35,7 +35,7 @@
             "bwasty",
             "cgcostume"
         ],
-        "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
+        "caption": "C Some quick example text to build on the card title and make up the bulk of the ..."
     },
     {
         "target": "cubescape",
@@ -44,6 +44,6 @@
             "cgcostume",
             "chistopher"
         ],
-        "caption": "Some quick example text to build on the card title and make up the bulk of the ..."
+        "caption": "D Some quick example text to build on the card title and make up the bulk of the ..."
     }
 ]

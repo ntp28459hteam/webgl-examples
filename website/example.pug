@@ -11,17 +11,17 @@ html(lang = 'en')
     include partials/navbar.pug
    
     include partials/authors.pug
-    section.container.mt-5
+    section.container
       block canvas
-      p.float-left.text-left #{example.title} using #[a(href = 'https://github.com/cginternals/webgl-operate') webgl-operate].
-      p.float-none.text-right by 
-        +authors(example.authors)
 
-
-    section.container.mt-5
+    section.container.mt-4
       div.row
         div.col
-          h4 #{example.title} | Breadown
+          h2 #{example.title.toUpperCase()}&ensp;|&ensp;Source Code Breakdown
+          p.lead Example using #[a(href = 'https://github.com/cginternals/webgl-operate') webgl-operate] by 
+            +authors(example.authors)
+            |#{'.'}
+          hr
 
           block breakdown
 
