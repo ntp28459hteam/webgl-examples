@@ -1,14 +1,11 @@
 
 import {
     AccumulatePass, AntiAliasingKernel, auxiliaries, BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer,
-    Invalidate, MouseEventProvider, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2, Wizard,
+    Invalidate, MouseEventProvider, Navigation, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2,
+    Wizard,
 } from 'webgl-operate';
 
 import { vec3, vec4 } from 'gl-matrix';
-
-// helper functions
-import { pointsInLight, pointsOnSphere } from './helper';
-import { TrackballNavigation } from './trackballnavigation';
 
 import { colors, indices, vertices } from './cornellbox';
 
@@ -32,7 +29,8 @@ export class CornellRenderer extends Renderer {
 
     // stuff
     protected _camera: Camera;
-    protected _navigation: TrackballNavigation;
+    protected _navigation: Navigation;
+
     protected _ndcTriangle: NdcFillingTriangle;
 
     // program and uniforms
@@ -71,7 +69,6 @@ export class CornellRenderer extends Renderer {
 
         // Update camera navigation (process events)
         this._navigation.update();
-
         return this._altered.any || this._camera.altered;
     }
 
@@ -188,7 +185,7 @@ export class CornellRenderer extends Renderer {
         this._camera.far = 4.0;
 
         // Initialize navigation
-        this._navigation = new TrackballNavigation(callback, mouseEventProvider);
+        this._navigation = new Navigation(callback, mouseEventProvider);
         this._navigation.camera = this._camera;
 
 
@@ -219,7 +216,7 @@ export class CornellRenderer extends Renderer {
 
         // CREATE HEMISPHERE PATH SAMPLES
         const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'float');
-        const points = pointsOnSphere(2048);
+        const points = this.pointsOnSphere(2048);
         const samplerSize = Math.floor(Math.sqrt(points.length));
         const spherePoints = new Float32Array(samplerSize * samplerSize * 3);
         for (let i = 0; i < samplerSize * samplerSize; ++i) {
@@ -235,7 +232,7 @@ export class CornellRenderer extends Renderer {
         this._hsphereImage.filter(gl.NEAREST, gl.NEAREST);
 
         // CREATE LIGHT AREA SAMPLES
-        const lights = pointsInLight(light0, light1, 32 * 32);
+        const lights = this.pointsInLight(light0, light1, 32 * 32);
         const lights2 = new Float32Array(lights.length * 3);
         let i2 = 0;
         for (const light of lights) {
@@ -328,6 +325,49 @@ export class CornellRenderer extends Renderer {
         this._depthRenderbuffer.uninitialize();
 
         this._blit.uninitialize();
+    }
+
+
+    // https://en.wikipedia.org/wiki/Fisher-Yates_shuffle
+    shuffle(deck: Array<vec3>) {
+        const randomizedDeck = [];
+        const array = deck.slice();
+        while (array.length !== 0) {
+            const rIndex = Math.floor(array.length * Math.random());
+            randomizedDeck.push(array[rIndex]);
+            array.splice(rIndex, 1);
+        }
+        return randomizedDeck;
+    }
+
+    pointsInLight(llf: vec3, urb: vec3, minN: number): Array<vec3> {
+        const lights = Array<vec3>();
+
+        const min = vec3.min(vec3.create(), llf, urb);
+        const max = vec3.max(vec3.create(), llf, urb);
+        const size = vec3.subtract(vec3.create(), max, min);
+
+        const r = Math.ceil(Math.sqrt(1.0 * minN));
+        const step = vec3.scale(vec3.create(), size, (1.0 - 1e-4) / (r - 1.0)); // the "<=" and floating precision
+        for (let x = min[0]; x <= max[0]; x += step[0]) {
+            for (let z = min[2]; z <= max[2]; z += step[2]) {
+                lights.push(vec3.fromValues(x, auxiliaries.rand(min[1], max[1]), z));
+            }
+        }
+        return this.shuffle(lights);
+    }
+
+    pointsOnSphere(numPoints: number): Array<vec3> {
+        // random directions in tangent space
+        const donkey = new Array<vec3>(numPoints);
+        for (let i = 0; i < donkey.length; ++i) {
+            const bound = 1.0 - 1e-4;
+            const x = auxiliaries.rand(-bound, bound);
+            const z = auxiliaries.rand(-bound, bound);
+            const y = Math.sqrt(Math.max(1.0 - x * x - z * z, 1e-4));
+            donkey[i] = vec3.normalize(vec3.create(), vec3.fromValues(x, y, z));
+        }
+        return donkey;
     }
 
 }
