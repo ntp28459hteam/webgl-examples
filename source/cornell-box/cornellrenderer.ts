@@ -7,7 +7,7 @@ import {
 import { vec3, vec4 } from 'gl-matrix';
 
 // helper functions
-import { pointsInLight, pointsOnSphere } from './helper';
+import { encodeFloatArray, encodeFloatArrayAndScale, pointsInLight, pointsOnSphere } from './helper';
 import { TrackballNavigation } from './trackballnavigation';
 
 import { colors, indices, vertices } from './cornellbox';
@@ -196,7 +196,9 @@ export class CornellRenderer extends Renderer {
         const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cornell.vert');
         vert.initialize(require('./cornell.vert'));
         const frag = new Shader(this._context, gl.FRAGMENT_SHADER, 'cornell.frag');
-        frag.initialize(require(this._context.isWebGL2 ? './cornell2.frag' : './cornell1.frag'));
+        frag.initialize(require(this._context.isWebGL1 ?
+            (this._context.supportsTextureFloat ? './cornell1.frag' : './cornell0.frag') :
+            './cornell2.frag'));
         this._program = new Program(this._context);
         this._program.initialize([vert, frag]);
 
@@ -217,24 +219,20 @@ export class CornellRenderer extends Renderer {
         const aVertex = this._program.attribute('a_vertex', 0);
         this._ndcTriangle.initialize(aVertex);
 
-        // CREATE HEMISPHERE PATH SAMPLES
-        const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'float');
-        const points = pointsOnSphere(2048);
-        const samplerSize = Math.floor(Math.sqrt(points.length));
+
+        // CREATE HEMISPHERE PATH SAMPLES and LIGHT AREA SAMPLES
+        this._hsphereImage = new Texture2(this._context, 'hsphereImage');
+        this._lightsImage = new Texture2(this._context, 'lightsImage');
+
+        const points = pointsOnSphere(32 * 32);
+        const samplerSize = Math.floor(Math.sqrt(points.length)); // shader expects 32
         const spherePoints = new Float32Array(samplerSize * samplerSize * 3);
         for (let i = 0; i < samplerSize * samplerSize; ++i) {
             spherePoints[3 * i + 0] = points[i][0];
             spherePoints[3 * i + 1] = points[i][1];
             spherePoints[3 * i + 2] = points[i][2];
         }
-        this._hsphereImage = new Texture2(this._context, 'hsphereImage');
-        this._hsphereImage.initialize(samplerSize, samplerSize,
-            fnt[0], gl.RGB, fnt[1]);
-        this._hsphereImage.data(spherePoints);
-        this._hsphereImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
-        this._hsphereImage.filter(gl.NEAREST, gl.NEAREST);
 
-        // CREATE LIGHT AREA SAMPLES
         const lights = pointsInLight(light0, light1, 32 * 32);
         const lights2 = new Float32Array(lights.length * 3);
         let i2 = 0;
@@ -243,10 +241,23 @@ export class CornellRenderer extends Renderer {
             lights2[i2++] = light[1];
             lights2[i2++] = light[2];
         }
-        this._lightsImage = new Texture2(this._context, 'lightsImage');
-        this._lightsImage.initialize(32, 32,
-            fnt[0], gl.RGB, fnt[1]);
-        this._lightsImage.data(lights2);
+
+        // special case for webgl1 and no float support
+        if (this._context.isWebGL1 && !this._context.supportsTextureFloat) {
+            this._hsphereImage.initialize(32 * 3, 32, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
+            this._hsphereImage.data(encodeFloatArrayAndScale(spherePoints));
+            this._lightsImage.initialize(32 * 3, 32, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
+            this._lightsImage.data(encodeFloatArrayAndScale(lights2));
+        } else {
+            const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'float');
+            this._hsphereImage.initialize(samplerSize, samplerSize, fnt[0], gl.RGB, fnt[1]);
+            this._hsphereImage.data(spherePoints);
+            this._lightsImage.initialize(32, 32, fnt[0], gl.RGB, fnt[1]);
+            this._lightsImage.data(lights2);
+        }
+
+        this._hsphereImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
+        this._hsphereImage.filter(gl.NEAREST, gl.NEAREST);
         this._lightsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
         this._lightsImage.filter(gl.NEAREST, gl.NEAREST);
 
@@ -260,28 +271,34 @@ export class CornellRenderer extends Renderer {
             this._program.unbind();
 
             this._verticesImage = new Texture2(this._context, 'verticesImage');
-            this._verticesImage.initialize(vertices.length / 3, 1,
-                fnt[0], gl.RGB, fnt[1]); // height 1
-            this._verticesImage.data(vertices);
+            this._indicesImage = new Texture2(this._context, 'indicesImage');
+            this._colorsImage = new Texture2(this._context, 'colorsImage');
+
+            this._indicesImage.initialize(indices.length / 4, 1, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE);
+            this._indicesImage.data(indices);
+
+            if (context.supportsTextureFloat) {
+                this._verticesImage.initialize(vertices.length / 3, 1, gl.RGB, gl.RGB, gl.FLOAT);
+                this._verticesImage.data(vertices);
+                this._colorsImage.initialize(colors.length / 3, 1, gl.RGB, gl.RGB, gl.FLOAT);
+                this._colorsImage.data(colors);
+            } else {
+                // no floats => encode float in 3 bytes
+                this._verticesImage.initialize(vertices.length / 3 * 3, 1, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
+                this._verticesImage.data(encodeFloatArrayAndScale(vertices));
+                this._colorsImage.initialize(colors.length / 3 * 3, 1, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
+                this._colorsImage.data(encodeFloatArray(colors));
+            }
+
             this._verticesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
             this._verticesImage.filter(gl.NEAREST, gl.NEAREST);
 
-            const fnt2 = Wizard.queryInternalTextureFormat(this._context, gl.RGBA, 'float');
-            this._indicesImage = new Texture2(this._context, 'indicesImage');
-            this._indicesImage.initialize(indices.length / 4, 1,
-                fnt2[0], gl.RGBA, fnt2[1]); // height 1
-            this._indicesImage.data(indices);
             this._indicesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
             this._indicesImage.filter(gl.NEAREST, gl.NEAREST);
 
-            this._colorsImage = new Texture2(this._context, 'colorsImage');
-            this._colorsImage.initialize(colors.length / 3, 1,
-                fnt[0], gl.RGB, fnt[1]); // height 1
-            this._colorsImage.data(colors);
             this._colorsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
             this._colorsImage.filter(gl.NEAREST, gl.NEAREST);
         }
-
 
         // ndc offset for anti-aliasing
         this._uNdcOffset = this._program.uniform('u_ndcOffset');

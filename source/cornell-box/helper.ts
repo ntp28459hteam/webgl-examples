@@ -51,3 +51,37 @@ export function pointsOnSphere(numPoints: number): Array<vec3> {
     }
     return donkey;
 }
+
+function fract(x: number): number {
+    return x > 0 ? x - Math.floor(x) : x - Math.ceil(x);
+}
+
+function encode_float24x1_to_uint8x3(out: vec3, x: number): vec3 {
+    out[0] = Math.floor(x * 255.0);
+    out[1] = Math.floor(fract(x * 255.0) * 255.0);
+    out[2] = Math.floor(fract(x * 65536.0) * 255.0);
+    return out;
+}
+
+export function encodeFloatArray(floats: Float32Array): Uint8Array {
+    const byteEncodedArray = new Uint8Array(floats.length * 3);
+    for (let i = 0; i < floats.length; i++) {
+        const encodedVec3 = encode_float24x1_to_uint8x3(vec3.create(), floats[i]);
+        byteEncodedArray[3 * i + 0] = encodedVec3[0];
+        byteEncodedArray[3 * i + 1] = encodedVec3[1];
+        byteEncodedArray[3 * i + 2] = encodedVec3[2];
+    }
+    return byteEncodedArray;
+}
+
+// scale from [-1..+1] to [0..1] and encode
+export function encodeFloatArrayAndScale(floats: Float32Array): Uint8Array {
+    const byteEncodedArray = new Uint8Array(floats.length * 3);
+    for (let i = 0; i < floats.length; i++) {
+        const encodedVec3 = encode_float24x1_to_uint8x3(vec3.create(), floats[i] * 0.5 + 0.5);
+        byteEncodedArray[3 * i + 0] = encodedVec3[0];
+        byteEncodedArray[3 * i + 1] = encodedVec3[1];
+        byteEncodedArray[3 * i + 2] = encodedVec3[2];
+    }
+    return byteEncodedArray;
+}

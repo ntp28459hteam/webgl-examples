@@ -23,7 +23,7 @@ export let vertices = new Float32Array([
 /**
  * Indices per line: [ v0, v1, v2, color ]
  */
-export let indices = new Float32Array([
+export let indices = new Uint8Array([
     // room ceiling
     6, 7, 3, 1,
     6, 3, 2, 1,
