@@ -1,11 +1,7 @@
 language: node_js
 node_js:
-  - '7'
+  - '9'
 install:
   - npm install
-  - npm install rxjs
 script:
   - npm run-script build
-  - npm run-script check
-  - npm run-script example
-  
