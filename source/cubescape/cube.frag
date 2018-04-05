@@ -22,14 +22,7 @@ varying vec3 v_global;
 
 vec2 extract(in vec3 x)
 {
-    return mix(mix(
-            x.xy,
-            x.xz,
-            float(abs(x.y) > 0.999)
-        ),
-        x.zy,
-        float(abs(x.x) > 0.999)
-    );
+    return mix(mix(x.xy, x.xz, float(abs(x.y) > 0.999)), x.zy, float(abs(x.x) > 0.999));
 }
 
 vec3 extractNormal(in vec3 x)
@@ -64,5 +57,5 @@ void main()
 	vec3 c0 = texture(u_patches, texCoord + max(floor(t), 0.0) * vec2(0.25, 0.0)).xyz;
 	vec3 c1 = texture(u_patches, texCoord + min(floor(t) + 1.0, 3.0) * vec2(0.25, 0.0)).xyz;
 
-	fragColor = vec4(mix(c0, c1, smoothstep(0.25, 0.75, fract(t))) * a, 1.0);
+	fragColor = vec4(mix(c0, c1, smoothstep(0.25, 0.75, fract(t))) * pow(a, 0.5), 1.0);
 }

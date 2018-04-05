@@ -8,8 +8,6 @@ function onload() {
     const canvas = new Canvas('example-canvas');
     const context = canvas.context;
 
-    canvas.clearColor.fromHex('f8f9fa');
-
     const renderer = new CubescapeRenderer();
     canvas.renderer = renderer;
 

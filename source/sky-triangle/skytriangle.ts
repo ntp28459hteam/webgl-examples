@@ -1,5 +1,5 @@
-import { Camera, Context, NdcFillingTriangle, Program, Shader, TextureCube } from 'webgl-operate';
 
+import { Camera, Context, NdcFillingTriangle, Program, Shader, TextureCube } from 'webgl-operate';
 
 export class SkyTriangle {
 

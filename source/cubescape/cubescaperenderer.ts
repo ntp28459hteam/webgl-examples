@@ -3,14 +3,14 @@ import { vec3 } from 'gl-matrix';
 
 import {
     BlitPass, Camera, Context, DefaultFramebuffer, EventHandler, Framebuffer, Invalidate,
-    MouseEventProvider, Program, Renderbuffer, Renderer, Shader, Texture2, Wizard,
+    MouseEventProvider, Navigation, Program, Renderbuffer, Renderer, Shader, Texture2, Wizard,
 } from 'webgl-operate';
 
 import { Cube } from './cube';
 
 
 // camera constants
-const _gEye = vec3.fromValues(0.0, 0.8, -2.0);
+const _gEye = vec3.fromValues(0.2, 0.8, -2.0);
 const _gCenter = vec3.fromValues(0.0, -1.2, 0.0);
 const _gUp = vec3.fromValues(0.0, 1.0, 0.0);
 
@@ -28,13 +28,14 @@ export class CubescapeRenderer extends Renderer {
 
     // camera
     protected _camera: Camera;
+    protected _navigation: Navigation;
 
     // cubes
     protected _cube: Cube;
     protected _program: Program;
     protected _uViewProjection: WebGLUniformLocation;
     protected _aVertex: GLuint;
-    protected _numCubes = 8;
+    protected _numCubes = 64;
 
     // skyBox and skyTriangle use the same cubeMap
     protected _patches: Texture2;
@@ -44,8 +45,11 @@ export class CubescapeRenderer extends Renderer {
 
 
     protected onUpdate(): boolean {
+
+        this._navigation.update();
         this._eventHandler.update();
-        return true;
+
+        return this._altered.any || this._camera.altered;
     }
 
     protected onPrepare(): void {
@@ -113,8 +117,9 @@ export class CubescapeRenderer extends Renderer {
         const gl2facade = this._context.gl2facade;
 
         this._eventHandler = new EventHandler(callback, mouseEventProvider);
-        this._eventHandler.pushMouseDownHandler((latests: Array<MouseEvent>, previous: Array<MouseEvent>) => {
-            this._numCubes = this._numCubes + 2;
+        this._eventHandler.pushMouseWheelHandler((latests: Array<WheelEvent>, previous: Array<WheelEvent>) => {
+            this._numCubes = this._numCubes + ((latests[latests.length - 1].wheelDeltaY > 0) ? +1 : -1);
+            this._numCubes = Math.min(1024, Math.max(8, this._numCubes));
         });
 
         // load images
@@ -152,6 +157,9 @@ export class CubescapeRenderer extends Renderer {
         this._camera.up = _gUp;
         this._camera.near = 0.1;
         this._camera.far = 4.0;
+
+        this._navigation = new Navigation(callback, mouseEventProvider);
+        this._navigation.camera = this._camera;
 
         // init FBO & BlitPass
         this._defaultFBO = new DefaultFramebuffer(this._context, 'DefaultFBO');
