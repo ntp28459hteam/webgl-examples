@@ -2,14 +2,13 @@
 import { mat4, vec3 } from 'gl-matrix';
 
 import {
-    BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer, Invalidate, MouseEventProvider, Program, Renderbuffer,
-    Renderer, Shader, Texture2, TextureCube, Wizard,
+    BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer, Invalidate, MouseEventProvider, Navigation, Program,
+    Renderbuffer, Renderer, Shader, Texture2, TextureCube, Wizard,
 } from 'webgl-operate';
 
 
 import { Cube } from './cube';
 import { Skybox } from './skybox';
-import { TrackballNavigation } from './trackballnavigation';
 
 
 export class CameraNavigationRenderer extends Renderer {
@@ -25,7 +24,7 @@ export class CameraNavigationRenderer extends Renderer {
 
     // Camera and navigation
     protected _camera: Camera;
-    protected _navigation: TrackballNavigation;
+    protected _navigation: Navigation;
 
     // Flying cubes
     protected _cube: Cube;
@@ -176,8 +175,8 @@ export class CameraNavigationRenderer extends Renderer {
         this._camera.far = 8.0;
 
         // Initialize navigation
-        this._navigation = new TrackballNavigation(callback, mouseEventProvider);
-        this._navigation.initialize(this._camera);
+        this._navigation = new Navigation(callback, mouseEventProvider);
+        this._navigation.camera = this._camera;
 
         // Initialize FBO & BlitPass
         this._defaultFBO = new DefaultFramebuffer(this._context, 'DefaultFBO');

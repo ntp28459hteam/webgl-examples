@@ -1,14 +1,11 @@
 
 import {
     AccumulatePass, AntiAliasingKernel, auxiliaries, BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer,
-    Invalidate, MouseEventProvider, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2, Wizard,
+    Invalidate, MouseEventProvider, Navigation, NdcFillingTriangle, Program, Renderbuffer, Renderer, Shader, Texture2,
+    Wizard,
 } from 'webgl-operate';
 
 import { vec3, vec4 } from 'gl-matrix';
-
-// helper functions
-import { encodeFloatArray, encodeFloatArrayAndScale, pointsInLight, pointsOnSphere } from './helper';
-import { TrackballNavigation } from './trackballnavigation';
 
 import { colors, indices, vertices } from './cornellbox';
 
@@ -32,7 +29,8 @@ export class CornellRenderer extends Renderer {
 
     // stuff
     protected _camera: Camera;
-    protected _navigation: TrackballNavigation;
+    protected _navigation: Navigation;
+
     protected _ndcTriangle: NdcFillingTriangle;
 
     // program and uniforms
@@ -71,7 +69,6 @@ export class CornellRenderer extends Renderer {
 
         // Update camera navigation (process events)
         this._navigation.update();
-
         return this._altered.any || this._camera.altered;
     }
 
@@ -188,7 +185,7 @@ export class CornellRenderer extends Renderer {
         this._camera.far = 4.0;
 
         // Initialize navigation
-        this._navigation = new TrackballNavigation(callback, mouseEventProvider);
+        this._navigation = new Navigation(callback, mouseEventProvider);
         this._navigation.camera = this._camera;
 
 
@@ -224,7 +221,7 @@ export class CornellRenderer extends Renderer {
         this._hsphereImage = new Texture2(this._context, 'hsphereImage');
         this._lightsImage = new Texture2(this._context, 'lightsImage');
 
-        const points = pointsOnSphere(32 * 32);
+        const points = this.pointsOnSphere(32 * 32);
         const samplerSize = Math.floor(Math.sqrt(points.length)); // shader expects 32
         const spherePoints = new Float32Array(samplerSize * samplerSize * 3);
         for (let i = 0; i < samplerSize * samplerSize; ++i) {
@@ -233,7 +230,8 @@ export class CornellRenderer extends Renderer {
             spherePoints[3 * i + 2] = points[i][2];
         }
 
-        const lights = pointsInLight(light0, light1, 32 * 32);
+        // CREATE LIGHT AREA SAMPLES
+        const lights = this.pointsInLight(light0, light1, 32 * 32);
         const lights2 = new Float32Array(lights.length * 3);
         let i2 = 0;
         for (const light of lights) {
@@ -245,9 +243,9 @@ export class CornellRenderer extends Renderer {
         // special case for webgl1 and no float support
         if (this._context.isWebGL1 && !this._context.supportsTextureFloat) {
             this._hsphereImage.initialize(32 * 3, 32, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
-            this._hsphereImage.data(encodeFloatArrayAndScale(spherePoints));
+            this._hsphereImage.data(this.encodeFloatArrayAndScale(spherePoints));
             this._lightsImage.initialize(32 * 3, 32, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
-            this._lightsImage.data(encodeFloatArrayAndScale(lights2));
+            this._lightsImage.data(this.encodeFloatArrayAndScale(lights2));
         } else {
             const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'float');
             this._hsphereImage.initialize(samplerSize, samplerSize, fnt[0], gl.RGB, fnt[1]);
@@ -285,9 +283,9 @@ export class CornellRenderer extends Renderer {
             } else {
                 // no floats => encode float in 3 bytes
                 this._verticesImage.initialize(vertices.length / 3 * 3, 1, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
-                this._verticesImage.data(encodeFloatArrayAndScale(vertices));
+                this._verticesImage.data(this.encodeFloatArrayAndScale(vertices));
                 this._colorsImage.initialize(colors.length / 3 * 3, 1, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
-                this._colorsImage.data(encodeFloatArray(colors));
+                this._colorsImage.data(this.encodeFloatArray(colors));
             }
 
             this._verticesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
@@ -345,6 +343,83 @@ export class CornellRenderer extends Renderer {
         this._depthRenderbuffer.uninitialize();
 
         this._blit.uninitialize();
+    }
+
+
+    // https://en.wikipedia.org/wiki/Fisher-Yates_shuffle
+    shuffle(deck: Array<vec3>) {
+        const randomizedDeck = [];
+        const array = deck.slice();
+        while (array.length !== 0) {
+            const rIndex = Math.floor(array.length * Math.random());
+            randomizedDeck.push(array[rIndex]);
+            array.splice(rIndex, 1);
+        }
+        return randomizedDeck;
+    }
+
+    pointsInLight(llf: vec3, urb: vec3, minN: number): Array<vec3> {
+        const lights = Array<vec3>();
+
+        const min = vec3.min(vec3.create(), llf, urb);
+        const max = vec3.max(vec3.create(), llf, urb);
+        const size = vec3.subtract(vec3.create(), max, min);
+
+        const r = Math.ceil(Math.sqrt(1.0 * minN));
+        const step = vec3.scale(vec3.create(), size, (1.0 - 1e-4) / (r - 1.0)); // the "<=" and floating precision
+        for (let x = min[0]; x <= max[0]; x += step[0]) {
+            for (let z = min[2]; z <= max[2]; z += step[2]) {
+                lights.push(vec3.fromValues(x, auxiliaries.rand(min[1], max[1]), z));
+            }
+        }
+        return this.shuffle(lights);
+    }
+
+    pointsOnSphere(numPoints: number): Array<vec3> {
+        // random directions in tangent space
+        const donkey = new Array<vec3>(numPoints);
+        for (let i = 0; i < donkey.length; ++i) {
+            const bound = 1.0 - 1e-4;
+            const x = auxiliaries.rand(-bound, bound);
+            const z = auxiliaries.rand(-bound, bound);
+            const y = Math.sqrt(Math.max(1.0 - x * x - z * z, 1e-4));
+            donkey[i] = vec3.normalize(vec3.create(), vec3.fromValues(x, y, z));
+        }
+        return donkey;
+    }
+
+    fract(x: number): number {
+        return x > 0 ? x - Math.floor(x) : x - Math.ceil(x);
+    }
+
+    encode_float24x1_to_uint8x3(out: vec3, x: number): vec3 {
+        out[0] = Math.floor(x * 255.0);
+        out[1] = Math.floor(this.fract(x * 255.0) * 255.0);
+        out[2] = Math.floor(this.fract(x * 65536.0) * 255.0);
+        return out;
+    }
+
+    encodeFloatArray(floats: Float32Array): Uint8Array {
+        const byteEncodedArray = new Uint8Array(floats.length * 3);
+        for (let i = 0; i < floats.length; i++) {
+            const encodedVec3 = this.encode_float24x1_to_uint8x3(vec3.create(), floats[i]);
+            byteEncodedArray[3 * i + 0] = encodedVec3[0];
+            byteEncodedArray[3 * i + 1] = encodedVec3[1];
+            byteEncodedArray[3 * i + 2] = encodedVec3[2];
+        }
+        return byteEncodedArray;
+    }
+
+    // scale from [-1..+1] to [0..1] and encode
+    encodeFloatArrayAndScale(floats: Float32Array): Uint8Array {
+        const byteEncodedArray = new Uint8Array(floats.length * 3);
+        for (let i = 0; i < floats.length; i++) {
+            const encodedVec3 = this.encode_float24x1_to_uint8x3(vec3.create(), floats[i] * 0.5 + 0.5);
+            byteEncodedArray[3 * i + 0] = encodedVec3[0];
+            byteEncodedArray[3 * i + 1] = encodedVec3[1];
+            byteEncodedArray[3 * i + 2] = encodedVec3[2];
+        }
+        return byteEncodedArray;
     }
 
 }

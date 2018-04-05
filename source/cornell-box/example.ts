@@ -13,7 +13,7 @@ function onload() {
     canvas.renderer = renderer;
     canvas.framePrecision = `float`;
     canvas.frameScale = [0.5, 0.5];
-    canvas.clearColor = new Color([0.0, 0.0, 0.0, 1.0]);
+    canvas.clearColor.fromHex('d6d8db');
     canvas.controller.multiFrameNumber = 1024;
     canvas.element.addEventListener('click', () => { canvas.controller.update(); });
 

@@ -1,7 +1,7 @@
 
 import { Canvas, Color } from 'webgl-operate';
 
-import { CameraNavigationRenderer } from './renderer';
+import { CameraNavigationRenderer } from './navigationrenderer';
 
 
 function onload() {

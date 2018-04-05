@@ -1,11 +1,12 @@
 
-import { mat4, vec3 } from 'gl-matrix';
 
 import {
     BlitPass, Camera, Context, DefaultFramebuffer, Framebuffer, Invalidate, MouseEventProvider, Program, Renderbuffer,
     Renderer, Shader, Texture2, TextureCube, Wizard,
 } from 'webgl-operate';
 
+
+import { mat4, vec3 } from 'gl-matrix';
 
 import { Cube } from './cube';
 import { Skybox } from './skybox';

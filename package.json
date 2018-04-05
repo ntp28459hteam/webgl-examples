@@ -1,6 +1,5 @@
 {
     "name": "webgl-examples",
-    "version": "0.2.3",
     "license": "MIT",
     "description": "WebGL examples using TypeScript and webgl-operate.",
     "author": "CG Internals",
@@ -20,32 +19,32 @@
         }
     ],
     "devDependencies": {
-        "@types/gl-matrix": "~2.3.2",
+        "@types/gl-matrix": "~2.4.0",
         "concurrently": "~3.5.1",
-        "gl-matrix": "~2.3.2",
+        "cross-env": "~5.1.4",
+        "gl-matrix": "~2.4.0",
         "glob": "~7.1.2",
         "http-server": "~0.11.1",
         "pug": "~2.0.3",
         "rimraf": "~2.6.2",
         "source-map-support": "~0.5.4",
-        "ts-loader": "~3.5.0",
+        "ts-loader": "~4.1.0",
         "tslint": "~5.9.1",
-        "typescript": "~2.7.2",
-        "webgl-operate": "0.2.3",
-        "webpack": "~3.11.0",
-        "webpack-glsl-loader": "~1.0.1",
-        "webpack-sources": "~1.1.0"
-    },
-    "dependencies": {
-        "rxjs": "~5.5.6"
+        "typescript": "~2.8.1",
+        "webgl-operate": "~0.2.5",
+        "webpack": "^4.4.1",
+        "webpack-bundle-analyzer": "~2.11.1",
+        "webpack-cli": "~2.0.13",
+        "webpack-glsl-loader": "~1.0.1"
     },
     "scripts": {
-        "build": "webpack && node pugconfig.js",
+        "build": "webpack-cli --mode production && node pugconfig.js",
         "website": "node pugconfig.js",
         "check": "tslint --project tsconfig.json --force --format stylish --config tslint.json",
         "cleanup": "rimraf ./build",
         "start": "http-server ./build -a localhost -p 4000",
-        "start-watch": "concurrently \"webpack --watch\" \"node pugconfig.js --watch\" \"npm run-script start\""
+        "start-watch": "concurrently \"webpack-cli --mode production --watch\" \"node pugconfig.js --watch\" \"npm run-script start\"",
+        "analyze": "cross-env ANALYZE=true webpack-cli --mode production"
     },
     "keywords": [
         "webgl",
