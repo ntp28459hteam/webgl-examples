@@ -193,7 +193,9 @@ export class CornellRenderer extends Renderer {
         const vert = new Shader(this._context, gl.VERTEX_SHADER, 'cornell.vert');
         vert.initialize(require('./cornell.vert'));
         const frag = new Shader(this._context, gl.FRAGMENT_SHADER, 'cornell.frag');
-        frag.initialize(require(this._context.isWebGL2 ? './cornell2.frag' : './cornell1.frag'));
+        frag.initialize(require(this._context.isWebGL1 ?
+            (this._context.supportsTextureFloat ? './cornell1.frag' : './cornell0.frag') :
+            './cornell2.frag'));
         this._program = new Program(this._context);
         this._program.initialize([vert, frag]);
 
@@ -214,22 +216,19 @@ export class CornellRenderer extends Renderer {
         const aVertex = this._program.attribute('a_vertex', 0);
         this._ndcTriangle.initialize(aVertex);
 
-        // CREATE HEMISPHERE PATH SAMPLES
-        const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'float');
-        const points = this.pointsOnSphere(2048);
-        const samplerSize = Math.floor(Math.sqrt(points.length));
+
+        // CREATE HEMISPHERE PATH SAMPLES and LIGHT AREA SAMPLES
+        this._hsphereImage = new Texture2(this._context, 'hsphereImage');
+        this._lightsImage = new Texture2(this._context, 'lightsImage');
+
+        const points = this.pointsOnSphere(32 * 32);
+        const samplerSize = Math.floor(Math.sqrt(points.length)); // shader expects 32
         const spherePoints = new Float32Array(samplerSize * samplerSize * 3);
         for (let i = 0; i < samplerSize * samplerSize; ++i) {
             spherePoints[3 * i + 0] = points[i][0];
             spherePoints[3 * i + 1] = points[i][1];
             spherePoints[3 * i + 2] = points[i][2];
         }
-        this._hsphereImage = new Texture2(this._context, 'hsphereImage');
-        this._hsphereImage.initialize(samplerSize, samplerSize,
-            fnt[0], gl.RGB, fnt[1]);
-        this._hsphereImage.data(spherePoints);
-        this._hsphereImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
-        this._hsphereImage.filter(gl.NEAREST, gl.NEAREST);
 
         // CREATE LIGHT AREA SAMPLES
         const lights = this.pointsInLight(light0, light1, 32 * 32);
@@ -240,10 +239,23 @@ export class CornellRenderer extends Renderer {
             lights2[i2++] = light[1];
             lights2[i2++] = light[2];
         }
-        this._lightsImage = new Texture2(this._context, 'lightsImage');
-        this._lightsImage.initialize(32, 32,
-            fnt[0], gl.RGB, fnt[1]);
-        this._lightsImage.data(lights2);
+
+        // special case for webgl1 and no float support
+        if (this._context.isWebGL1 && !this._context.supportsTextureFloat) {
+            this._hsphereImage.initialize(32 * 3, 32, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
+            this._hsphereImage.data(this.encodeFloatArrayAndScale(spherePoints));
+            this._lightsImage.initialize(32 * 3, 32, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
+            this._lightsImage.data(this.encodeFloatArrayAndScale(lights2));
+        } else {
+            const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'float');
+            this._hsphereImage.initialize(samplerSize, samplerSize, fnt[0], gl.RGB, fnt[1]);
+            this._hsphereImage.data(spherePoints);
+            this._lightsImage.initialize(32, 32, fnt[0], gl.RGB, fnt[1]);
+            this._lightsImage.data(lights2);
+        }
+
+        this._hsphereImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
+        this._hsphereImage.filter(gl.NEAREST, gl.NEAREST);
         this._lightsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
         this._lightsImage.filter(gl.NEAREST, gl.NEAREST);
 
@@ -257,28 +269,34 @@ export class CornellRenderer extends Renderer {
             this._program.unbind();
 
             this._verticesImage = new Texture2(this._context, 'verticesImage');
-            this._verticesImage.initialize(vertices.length / 3, 1,
-                fnt[0], gl.RGB, fnt[1]); // height 1
-            this._verticesImage.data(vertices);
+            this._indicesImage = new Texture2(this._context, 'indicesImage');
+            this._colorsImage = new Texture2(this._context, 'colorsImage');
+
+            this._indicesImage.initialize(indices.length / 4, 1, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE);
+            this._indicesImage.data(indices);
+
+            if (context.supportsTextureFloat) {
+                this._verticesImage.initialize(vertices.length / 3, 1, gl.RGB, gl.RGB, gl.FLOAT);
+                this._verticesImage.data(vertices);
+                this._colorsImage.initialize(colors.length / 3, 1, gl.RGB, gl.RGB, gl.FLOAT);
+                this._colorsImage.data(colors);
+            } else {
+                // no floats => encode float in 3 bytes
+                this._verticesImage.initialize(vertices.length / 3 * 3, 1, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
+                this._verticesImage.data(this.encodeFloatArrayAndScale(vertices));
+                this._colorsImage.initialize(colors.length / 3 * 3, 1, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
+                this._colorsImage.data(this.encodeFloatArray(colors));
+            }
+
             this._verticesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
             this._verticesImage.filter(gl.NEAREST, gl.NEAREST);
 
-            const fnt2 = Wizard.queryInternalTextureFormat(this._context, gl.RGBA, 'float');
-            this._indicesImage = new Texture2(this._context, 'indicesImage');
-            this._indicesImage.initialize(indices.length / 4, 1,
-                fnt2[0], gl.RGBA, fnt2[1]); // height 1
-            this._indicesImage.data(indices);
             this._indicesImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
             this._indicesImage.filter(gl.NEAREST, gl.NEAREST);
 
-            this._colorsImage = new Texture2(this._context, 'colorsImage');
-            this._colorsImage.initialize(colors.length / 3, 1,
-                fnt[0], gl.RGB, fnt[1]); // height 1
-            this._colorsImage.data(colors);
             this._colorsImage.wrap(gl.CLAMP_TO_EDGE, gl.CLAMP_TO_EDGE);
             this._colorsImage.filter(gl.NEAREST, gl.NEAREST);
         }
-
 
         // ndc offset for anti-aliasing
         this._uNdcOffset = this._program.uniform('u_ndcOffset');
@@ -368,6 +386,40 @@ export class CornellRenderer extends Renderer {
             donkey[i] = vec3.normalize(vec3.create(), vec3.fromValues(x, y, z));
         }
         return donkey;
+    }
+
+    fract(x: number): number {
+        return x > 0 ? x - Math.floor(x) : x - Math.ceil(x);
+    }
+
+    encode_float24x1_to_uint8x3(out: vec3, x: number): vec3 {
+        out[0] = Math.floor(x * 255.0);
+        out[1] = Math.floor(this.fract(x * 255.0) * 255.0);
+        out[2] = Math.floor(this.fract(x * 65536.0) * 255.0);
+        return out;
+    }
+
+    encodeFloatArray(floats: Float32Array): Uint8Array {
+        const byteEncodedArray = new Uint8Array(floats.length * 3);
+        for (let i = 0; i < floats.length; i++) {
+            const encodedVec3 = this.encode_float24x1_to_uint8x3(vec3.create(), floats[i]);
+            byteEncodedArray[3 * i + 0] = encodedVec3[0];
+            byteEncodedArray[3 * i + 1] = encodedVec3[1];
+            byteEncodedArray[3 * i + 2] = encodedVec3[2];
+        }
+        return byteEncodedArray;
+    }
+
+    // scale from [-1..+1] to [0..1] and encode
+    encodeFloatArrayAndScale(floats: Float32Array): Uint8Array {
+        const byteEncodedArray = new Uint8Array(floats.length * 3);
+        for (let i = 0; i < floats.length; i++) {
+            const encodedVec3 = this.encode_float24x1_to_uint8x3(vec3.create(), floats[i] * 0.5 + 0.5);
+            byteEncodedArray[3 * i + 0] = encodedVec3[0];
+            byteEncodedArray[3 * i + 1] = encodedVec3[1];
+            byteEncodedArray[3 * i + 2] = encodedVec3[2];
+        }
+        return byteEncodedArray;
     }
 
 }
