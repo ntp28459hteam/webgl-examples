@@ -1,6 +1,6 @@
 
-precision lowp float;
-precision lowp usampler2D;
+precision highp float;
+precision highp usampler2D;
 
 @import ../shaders/facade.frag;
 
@@ -86,7 +86,7 @@ const float colors[NUM_COLORS * 3] = float[NUM_COLORS * 3]
     0.6110, 0.0555, 0.0620,  // 2 red
     0.1170, 0.4125, 0.1150,  // 3 green
     0.0620, 0.0555, 0.6110   // 4 blue
-); 
+);
 
 
 uniform sampler2D u_hsphere;

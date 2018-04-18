@@ -4,9 +4,9 @@
 #if __VERSION__ == 100
     #define fragColor gl_FragColor
     #extension GL_OES_standard_derivatives : enable
-    precision lowp float;
+    precision highp float;
 #else
-    precision lowp float;
+    precision highp float;
     layout(location = 0) out vec4 fragColor;
 #endif
 
@@ -27,7 +27,7 @@ const vec2 LIGHT_SAMPLER_SIZE = vec2(32, 32); // textureSize(u_lights, 0);
 const vec3 premultUint8x3 = vec3(255.0 / 256.0, 255.0 / 65536.0, 255.0 / 16777216.0);
 float uint8x3_to_float24x1(const in vec3 v) {
     return dot(v, premultUint8x3); // a1 * b1 + a2 * b2 + a3 * b3  ;)
-}  
+}
 
 vec3 vertexFetch(const in float index) {
     // *3 because every vertex has 3 floats
