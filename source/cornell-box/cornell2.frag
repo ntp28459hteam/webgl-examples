@@ -1,6 +1,6 @@
 
-precision highp float;
-precision highp usampler2D;
+precision mediump float;
+precision mediump usampler2D;
 
 @import ../shaders/facade.frag;
 

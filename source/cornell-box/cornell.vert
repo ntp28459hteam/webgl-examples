@@ -12,11 +12,11 @@ precision lowp float;
 
 
 uniform mat4 u_transform;
-uniform highp vec3 u_eye;
+uniform mediump vec3 u_eye;
 uniform vec2 u_ndcOffset;
 
-varying highp vec2 v_uv;
-varying highp vec4 v_ray;
+varying mediump vec2 v_uv;
+varying mediump vec4 v_ray;
 
 void main()
 {
