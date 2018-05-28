@@ -23,6 +23,11 @@ header, footer {
     padding-top: 8rem;
 }
 
+footer {
+    padding-bottom: 2rem;
+}
+
+
 section {
     padding-top: 2rem;
 }
