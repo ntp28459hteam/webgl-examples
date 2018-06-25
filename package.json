@@ -31,7 +31,7 @@
         "ts-loader": "~4.3.0",
         "tslint": "~5.10.0",
         "typescript": "~2.8.1",
-        "webgl-operate": "~0.2.11",
+        "webgl-operate": "~0.2.17",
         "webpack": "~4.9.1",
         "webpack-bundle-analyzer": "~2.13.1",
         "webpack-cli": "~2.1.4",
@@ -44,7 +44,7 @@
         "website": "node pugconfig.js",
         "check": "tslint --project tsconfig.json --force --format stylish --config tslint.json",
         "cleanup": "rimraf ./build",
-        "start": "http-server ./build -a localhost -p 4000",
+        "start": "http-server ./build -c-1 -a localhost -p 4000",
         "start-watch": "run-p build-watch pug-watch start",
         "analyze": "cross-env ANALYZE=true webpack-cli --mode production"
     },

@@ -247,7 +247,7 @@ export class CornellRenderer extends Renderer {
             this._lightsImage.initialize(32 * 3, 32, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE);
             this._lightsImage.data(this.encodeFloatArrayAndScale(lights2));
         } else {
-            const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'float');
+            const fnt = Wizard.queryInternalTextureFormat(this._context, gl.RGB, Wizard.Precision.float);
             this._hsphereImage.initialize(samplerSize, samplerSize, fnt[0], gl.RGB, fnt[1]);
             this._hsphereImage.data(spherePoints);
             this._lightsImage.initialize(32, 32, fnt[0], gl.RGB, fnt[1]);

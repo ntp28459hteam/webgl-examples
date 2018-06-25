@@ -125,7 +125,7 @@ export class SplitRenderer extends Renderer {
         const gl = this._context.gl;
 
         this._cubeMap = new TextureCube(this._context);
-        const internalFormatAndType = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'byte');
+        const internalFormatAndType = Wizard.queryInternalTextureFormat(this._context, gl.RGB, Wizard.Precision.byte);
         this._cubeMap.initialize(512, internalFormatAndType[0], gl.RGB, internalFormatAndType[1]);
         this._cubeMap.load({
             positiveX: 'data/skybox.px.png', negativeX: 'data/skybox.nx.png',

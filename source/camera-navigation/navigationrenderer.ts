@@ -137,7 +137,7 @@ export class CameraNavigationRenderer extends Renderer {
         vert.initialize(require('./cube.vert'));
         const frag = new Shader(this._context, gl.FRAGMENT_SHADER, 'cube.frag');
         frag.initialize(require('./cube.frag'));
-        this._cubeProgram = new Program(this._context);
+        this._cubeProgram = new Program(this._context, 'CubeProgram');
         this._cubeProgram.initialize([vert, frag]);
         this._uViewProjection = this._cubeProgram.uniform('u_viewProjection');
         this._uModel = this._cubeProgram.uniform('u_model');
@@ -198,7 +198,7 @@ export class CameraNavigationRenderer extends Renderer {
 
         // Initialize skyBox
 
-        const internalFormatAndType = Wizard.queryInternalTextureFormat(this._context, gl.RGB, 'byte');
+        const internalFormatAndType = Wizard.queryInternalTextureFormat(this._context, gl.RGB, Wizard.Precision.byte);
         this._cubeMap = new TextureCube(this._context);
         this._cubeMap.initialize(512, internalFormatAndType[0], gl.RGB, internalFormatAndType[1]);
 

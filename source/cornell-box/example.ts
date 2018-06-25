@@ -1,6 +1,6 @@
 
 
-import { Canvas, Color } from 'webgl-operate';
+import { Canvas, Wizard } from 'webgl-operate';
 
 import { CornellRenderer } from './cornellrenderer';
 
@@ -11,7 +11,7 @@ function onload() {
     const renderer = new CornellRenderer();
 
     canvas.renderer = renderer;
-    canvas.framePrecision = `float`;
+    canvas.framePrecision = Wizard.Precision.float;
     canvas.frameScale = [0.5, 0.5];
     canvas.clearColor.fromHex('d6d8db');
     canvas.controller.multiFrameNumber = 1024;
