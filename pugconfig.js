@@ -13,19 +13,21 @@ const pug = require('pug');
 
 
 const websiteDir = './website';
-const distDir = './build';
+const buildDir = './build';
 
 const examples = require(websiteDir + '/examples.json');
 
 const assets = [
-    ['./data', distDir + '/data', ['*'], [], false],
-    [websiteDir, distDir, ['css/*.css', 'js/*.js', 'img/*.{svg,png,jpg}', 'fonts/*', '*.{svg,png,ico,xml,json}'], [], false],
-    ['./node_modules/webgl-operate/dist', distDir + '/js', ['webgl-operate.{js,js.map}'], [], true]];
+    ['./data', buildDir + '/data', ['*'], [], false],
+    [websiteDir, buildDir, ['css/*.css', 'js/*.js', 'img/*.{svg,png,jpg}', 'fonts/*', '*.{svg,png,ico,xml,json}'], [], false],
+    ['./node_modules/webgl-operate/dist', buildDir + '/js', ['webgl-operate.{js,js.map}'], [], true],
+    ['./node_modules/rxjs/bundles/', `${buildDir}/js`, ['rxjs.umd.min.js'], [], false]
+];
 
 
 function render(template, target, object) {
     const src = path.join(websiteDir, template + '.pug');
-    const dst = path.join(distDir, target + '.html');
+    const dst = path.join(buildDir, target + '.html');
     if (!fs.existsSync(src)) {
         console.log('skipped:', target);
         return;
