@@ -18,3 +18,13 @@ Running `build` will transpile all sources and example websites to the `./build`
 Running `start` or `start-watch` enables `localhost:4000/new-renderer.html` to be accessed and debugged.
 
 Please note that we try to reduce these steps in the near future, e.g., by providing a script for these steps.
+
+#### Development Setup
+For a setup that automatically rebuilds and reloads open pages in the browser when changing files:
+* If you need to make changes to webgl-operate as well:
+  - change the `webgl-operate` version in `package.json` to `"file:../webgl-operate",` (adapt relative path as necessary) and run `npm install`
+  - enter the webgl-operate directory and run these in parallel:
+    - `npm run build-lib-watch`
+    - `npm run build-dist-watch`
+* If you want to test on a remote device: edit website/example.pug - replace localhost with your local IP in the line script(src='http://localhost:35729/livereload.js')
+* Run `npm run start-watch`
