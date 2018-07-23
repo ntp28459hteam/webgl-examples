@@ -68,6 +68,7 @@ if (watch) {
         setTimeout(build, 100);
     }
 
+    fs.watch(websiteDir, { recursive: false }, onWatch);
     fs.watch(WEBGL_OPERATE_DIST, { recursive: false }, onWatch);
 }
 
