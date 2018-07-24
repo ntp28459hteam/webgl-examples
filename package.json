@@ -36,7 +36,8 @@
         "webpack": "~4.9.1",
         "webpack-bundle-analyzer": "~2.13.1",
         "webpack-cli": "~2.1.4",
-        "webpack-glsl-loader": "~1.0.1"
+        "webpack-glsl-loader": "~1.0.1",
+        "webpack-livereload-plugin": "~2.1.1"
     },
     "scripts": {
         "build": "webpack-cli --mode production && node pugconfig.js",
@@ -45,7 +46,7 @@
         "website": "node pugconfig.js",
         "check": "tslint --project tsconfig.json --force --format stylish --config tslint.json",
         "cleanup": "rimraf ./build",
-        "start": "http-server ./build -c-1 -a localhost -p 4000",
+        "start": "http-server ./build -c-1 -a 0.0.0.0 -p 4000",
         "start-watch": "run-p build-watch pug-watch start",
         "analyze": "cross-env ANALYZE=true webpack-cli --mode production"
     },
