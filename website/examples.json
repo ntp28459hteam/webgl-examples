@@ -16,7 +16,7 @@
             "chistopher",
             "maikz"
         ],
-        "caption": " quick example text to build on the card title and make up the bulk of the ..."
+        "caption": ""
     },
     {
         "target": "camera-navigation",
@@ -25,17 +25,7 @@
             "cgcostume",
             "sbusch42"
         ],
-        "caption": "B Some quick example text to build on the card title and make up the bulk of the ..."
-    },
-    {
-        "target": "openll-showcase",
-        "title": "OpenLL Showcase",
-        "authors": [
-            "anne-gropler",
-            "bwasty",
-            "cgcostume"
-        ],
-        "caption": "C Some quick example text to build on the card title and make up the bulk of the ..."
+        "caption": ""
     },
     {
         "target": "cubescape",
@@ -44,6 +34,6 @@
             "cgcostume",
             "chistopher"
         ],
-        "caption": "D Some quick example text to build on the card title and make up the bulk of the ..."
+        "caption": ""
     }
 ]
