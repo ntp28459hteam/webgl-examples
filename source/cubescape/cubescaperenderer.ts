@@ -3,7 +3,7 @@ import { vec3 } from 'gl-matrix';
 
 import {
     BlitPass, Camera, Context, DefaultFramebuffer, EventHandler, Framebuffer, Invalidate,
-    MouseEventProvider, Navigation, Program, Renderbuffer, Renderer, Shader, Texture2, Wizard,
+    MouseEventProvider, Navigation, Program, Renderbuffer, Renderer, Shader, Texture2, TouchEventProvider, Wizard,
 } from 'webgl-operate';
 
 import { Cube } from './cube';
@@ -112,11 +112,12 @@ export class CubescapeRenderer extends Renderer {
         this.invalidate();
     }
 
-    protected onInitialize(context: Context, callback: Invalidate, mouseEventProvider: MouseEventProvider): boolean {
+    protected onInitialize(context: Context, callback: Invalidate, mouseEventProvider: MouseEventProvider,
+        touchEventProvider: TouchEventProvider | undefined): boolean {
         const gl = this._context.gl;
         const gl2facade = this._context.gl2facade;
 
-        this._eventHandler = new EventHandler(callback, mouseEventProvider);
+        this._eventHandler = new EventHandler(callback, mouseEventProvider, touchEventProvider);
         this._eventHandler.pushMouseWheelHandler((latests: Array<WheelEvent>, previous: Array<WheelEvent>) => {
             this._numCubes = this._numCubes + ((latests[latests.length - 1].wheelDeltaY > 0) ? +1 : -1);
             this._numCubes = Math.min(1024, Math.max(8, this._numCubes));

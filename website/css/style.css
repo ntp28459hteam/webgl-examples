@@ -104,6 +104,10 @@ ul.features li:last-child:after {
     }
 }
 
+.card-body {
+    height: 115px;
+}
+
 
 .btn-clipboard-parent {
     position: relative;
